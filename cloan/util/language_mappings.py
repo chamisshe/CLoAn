@@ -19,40 +19,10 @@ NLLB_NAMES = {
 
 # with open(f'{DATA_PATH}config.yml', "r", encoding="utf-8") as f:
 
-# GET_FILENAMES = {
-#     "NLLB" : {
-#         # "english": "eng_Latn",
-#         "german": "dev.deu_Latn",
-#         "french": "dev.fra_Latn",
-#         "kurdish": "",
-#         "russian": "dev.rus_Cyrl",
-#         "greek": "dev.ell_Grek",
-#         "farsi": "dev.pes_Arab",
-#         "test": "dev.test_Latn",
-#         },
-# }
-
-# filenames:
-#   NLLB:
-#     german: dev.deu_Latn
-#     french: dev.fra_Latn
-#     kurdish: 
-#     russian: dev.rus_Cyrl
-#     greek: dev.ell_Grek
-#     farsi: dev.pes_Arab
-#     test: dev.test_Latn
-
-
-# AVAILABLE_LANGUAGES = {
-#     # "english",
-#     "german",
-#     "french",
-#     "kurdish",
-#     "russian",
-#     "greek",
-#     "farsi",
-# }
-
+ARABIC_SCRIPT = {
+    "farsi",
+    "kurdish-central"
+}
 
 WORDNET_NAMES = {
     "german" : "odenet",
@@ -68,7 +38,7 @@ NAME_TO_ISO3CODE = {
     "french":"fra",
     "greek" : "ell",
     "russian" : "rus",
-    "farsi" : "pes",
+    "farsi" : "fas",
 }
 
 

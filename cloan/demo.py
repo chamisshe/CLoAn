@@ -13,9 +13,6 @@ def typewriter(sentence: str):
 
 def demo(console: Console):
     console.print(yellowbold("TBD: this would be the demo"))
-    time.sleep(5.0)
+    time.sleep(2.0)
     pass
 
-
-# a_string = "aaaa"
-# print(a_string.capitalize())

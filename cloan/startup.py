@@ -10,6 +10,7 @@ from demo import demo
 ############# STYLES ##############
 from util.styles import default_select_style, interrupt_style, SENT_STYLE, MARK_LW, yellowbold, yellow_light, orange_light
 
+
 console = Console()
 new_corpus = False
 
@@ -24,11 +25,6 @@ def save_config(config_dict, config_file: str="data/.config/config.yml"):
         yaml.dump(config_dict, config_stream)
     pass
 
-
-
-
-# def initialize_new_corpus():
-#     pass
 
 ######### CORPUS checking/loading ###############
 def locate_corpus(corpus_name) -> str:
@@ -55,10 +51,7 @@ def user_choose_corpus() -> tuple[str, str]:
         "Which corpus would you like to annotate?",
         choices=choices,
         style=default_select_style,
-        # default="NLLB-devtest",
         ).unsafe_ask()
-    # except KeyboardInterrupt:
-    #     raise ExitAnnotation
     # add a new corpus
     if corpus_name == "-OTHER-":
         global new_corpus
@@ -113,7 +106,7 @@ def check_language(language, corpus_name, corpus_path):
 
 
 def user_choose_language(corpus_name, corpus_path) -> tuple[str, str]:
-    # console.print(Rule())
+
     possible_langs = [x.capitalize() for x in list(config["filenames"][corpus_name].keys())]
     possible_langs.append("-NEW LANGUAGE-")
     console.print(Rule())
@@ -147,14 +140,12 @@ def add_new_language_and_file(corpus_name, corpus_path):
         lang_name = console.input(yellow_light("Enter the name of your language:\n"))
         # add new language to known languages
         config["all_languages"].append(lang_name)
-    # lang_name = console.input(yellow_light("Enter the name of your language:\n"))
-    # config["all_languages"].append(lang_name)
-        
+
     console.print(Rule())
     console.print("To annotate anything, we'll also need to know the name of the file you would like to annotate.")
     file_path = new_corpus_find_files(corpus_path)
-    # config["filenames"][corpus_name]={lang_name:file_path,}
     config["filenames"][corpus_name][lang_name] = file_path
+
     return lang_name, file_path
 
 
@@ -229,7 +220,6 @@ def launch(corpus, lang):
     global config
     config = load_config()
     show_demo()
-    # console.print(config)
     # check for and/or get the right corpus-name and -path
     corpus_name, corpus_path = check_corpus(corpus_name=corpus)
 
@@ -238,8 +228,3 @@ def launch(corpus, lang):
     save_config(config_dict=config)
     console.log(f"Updated config file.")
     return lang, corpus_name, corpus_path, file_path
-
-
-
-# if __name__ == "__main__":
-#     launch()

@@ -1,7 +1,11 @@
 import re
 import os
+import yaml
 from utoken import utokenize
 from utoken import detokenize
+
+
+import pyarabic.araby as araby # this will remove diacritics which are optional in writing in Abjad scripts
 
 # TODO
 from rich.console import Console
@@ -11,18 +15,62 @@ import json
 import time
 from util.styles import default_select_style, interrupt_style, SENT_STYLE, MARK_LW, yellowbold, yellow_light, orange_light
 from util.interrupts import *
-from language_mappings import NAME_TO_ISO3CODE
+from util.language_mappings import NAME_TO_ISO3CODE, ARABIC_SCRIPT
 console = Console()
 
-tok = utokenize.Tokenizer()  # Initialize tokenizer, load resources
-detok = detokenize.Detokenizer()  # Initialize tokenizer, load resources
-# tok = utokenize.Tokenizer(lang_code='eng')  # Initialize tokenizer, load resources
+tok = utokenize.Tokenizer()  # Initialize tokenizer, load resources later
+detok = detokenize.Detokenizer()  # Initialize tokenizer, load resources later
 
 ROOT = os.path.abspath(os.path.join( os.path.dirname(__file__), "../.."))
 DATA_PATH = os.path.abspath(os.path.join(ROOT, "data/"))
-# print("ROOT: ", ROOT)
-# print("DATA: ", DATA_PATH)
 PERSIST = os.path.abspath(os.path.join(DATA_PATH, "internal/PERSISTENCE.json"))
+
+
+
+##### TOKENIZING / DETOKENIZING ###############
+def load_tok_detok(lang: str) -> tuple[utokenize.Tokenizer,detokenize.Detokenizer]:
+    code = NAME_TO_ISO3CODE[lang]
+    global tok, detok
+    tok = utokenize.Tokenizer(lang_code=code)  # Initialize tokenizer, load resources
+    detok = detokenize.Detokenizer(lang_code=code)
+    return tok, detok
+###############################################
+
+
+##### MANUAL EDITING ##########################
+def detect_changes(old_sent: str, new_sent: str):
+    
+    if old_sent == new_sent:
+        pass
+
+    for i,(a,b) in enumerate(zip(old_sent, new_sent)):
+        if a != b:
+            start = i
+            break
+    for i, (a,b) in enumerate(zip(old_sent[::-1], new_sent[::-1]), ):
+        if a != b:
+            # print(a, b)
+            stop = -i
+            print(stop)
+            break
+    if len(old_sent) > len(new_sent):
+        return old_sent[start:stop], stop
+    else:
+        return new_sent[start:stop], stop
+###############################################
+
+
+
+###############################################
+################# PERSISTENCE #################
+def which_pass(language) -> int:
+    try:
+        with open(PERSIST, "r", encoding="utf-8") as f:
+            persistence = json.load(f)
+        n_pass = persistence[language]["pass"]
+        return n_pass
+    except KeyError:
+        return 1
 
 
 def start_annotating_from_sent_x(num_sents):
@@ -46,66 +94,6 @@ def start_annotating_from_sent_x(num_sents):
         number = start_annotating_from_sent_x(num_sents)
     return number, n_pass
 
-
-
-def load_tok_detok(lang: str) -> tuple[utokenize.Tokenizer,detokenize.Detokenizer]:
-    code = NAME_TO_ISO3CODE[lang]
-    global tok, detok
-    tok = utokenize.Tokenizer(lang_code=code)  # Initialize tokenizer, load resources
-    detok = detokenize.Detokenizer(lang_code=code)
-    return tok, detok
-
-
-def detect_changes(old_sent: str, new_sent: str):
-    
-    if old_sent == new_sent:
-        pass
-
-    for i,(a,b) in enumerate(zip(old_sent, new_sent)):
-        if a != b:
-            start = i
-            break
-    for i, (a,b) in enumerate(zip(old_sent[::-1], new_sent[::-1]), ):
-        if a != b:
-            # print(a, b)
-            stop = -i
-            print(stop)
-            break
-    if len(old_sent) > len(new_sent):
-        return old_sent[start:stop], stop
-    else:
-        return new_sent[start:stop], stop
-#     pass
-
-def highlight_all_loanwords(sentence, lw_candidates):
-    # sentence = split_punctuation(sentence)
-    # sentence = tokenizer.utokenize_string(sentence)
-    console.log(tok.lang_code)
-    all_words = sentence.split()
-    print(all_words)
-    sent_so_far = ""
-    for word in all_words:
-        if word not in lw_candidates and word.lower() not in lw_candidates:
-            sent_so_far = f'{sent_so_far}{word} '
-        else:
-            console.print(sent_so_far,end="")
-            console.print(word, style=MARK_LW, end="")
-            # console.print(word, style=MARK_LW, end="")
-            sent_so_far = " "
-    console.print(sent_so_far)
-        # pass
-    pass
-
-########### PERSISTENCE ###########
-def which_pass(language) -> int:
-    try:
-        with open(PERSIST, "r", encoding="utf-8") as f:
-            persistence = json.load(f)
-        n_pass = persistence[language]["pass"]
-        return n_pass
-    except KeyError:
-        return 1
-    pass
 
 def load_position(language, num_sentences) -> int:
     try:
@@ -145,10 +133,8 @@ def load_position(language, num_sentences) -> int:
     except KeyError:
         position = 0
         persistence[language] = {"position": position, "pass": 1} 
-    ################################
-    # else:
-    #     position = 0
     return position
+
 
 def save_position_and_pass(language, position, n_pass: int=1):
     # save file position
@@ -163,17 +149,71 @@ def save_position_and_pass(language, position, n_pass: int=1):
     with open(PERSIST, 'w', encoding="utf-8") as f:
         json.dump(memory, f)
     console.log("Saved current position")
+###############################################
 
-def load_lwlist(lwlist_path) -> set:
+
+
+###############################################
+################# CONFIG ######################
+def load_config():
+    config_path = os.path.abspath(os.path.join(DATA_PATH, ".config/config.yml"))
+    console.log(config_path)
+    with open(config_path, 'r', encoding='utf-8') as f:
+        config_dict = yaml.safe_load(f)
+    return config_dict
+        
+
+def save_config(config_dict):
+    config_path = os.path.abspath(os.path.join(DATA_PATH), ".config/config.yml")
+    with open(config_path, "w", encoding="utf-8") as config_stream:
+        yaml.dump(config_dict, config_stream)
+###############################################
+
+
+
+###############################################
+############# LOADING LOANWORDS ###############
+def load_lwlist(language=str) -> set:
+    lwlist_path = os.path.abspath(os.path.join(DATA_PATH, "loanwords",load_config()["wordlists"][language]))
     with open(lwlist_path, "r", encoding="utf-8") as lwfile:
-        lwlist = set(lwfile.read().split("\n"))
-        # Remove empty string
-        try:
-            lwlist.remove("")
-        except ValueError:
-            pass
+        # ASSUMES FORMAT: 
+        #   {   LOANWORD1 : {other_info},
+        #       LOANWORD2 : {...},
+        #       ... }
+        if lwlist_path.endswith(".json"):
+            lwdict = json.load(lwfile)
+            # we only really need the
+            lwlist = set([kvpair[0] for kvpair in lwdict.items()])
+        elif lwlist_path.endswith(".tsv"):
+            lwlist = set(lwfile.read().split("\n"))
+            # Remove empty string
+            try:
+                lwlist.remove("")
+            except ValueError:
+                pass
     return lwlist
 
+def load_bidict(language=str) -> dict:
+    lw_dict_path = load_config()["wordlists"][language]
+    with open(lw_dict_path, "r", encoding="utf-8") as f:
+        lwdict = json.load(f)
+    # possible keynames: 
+    # - "equiv"
+    # - "alt"
+    # - "alternative"
+    # in the first loanword's values, get all the key-names
+    possible_keynames = tuple(lwdict.items())[0][1].keys()
+    # set the keyname
+    if "equiv" in possible_keynames: keyname = "equiv"
+    if "alt" in possible_keynames: keyname = "alt"
+    if "alternative" in possible_keynames: keyname = "alternative"
+
+    # create the bi-lingual dictionary in the following format:
+    #   {LOANWORD1  : [ALT1, ALT2],
+    #    LOANWORD2  : [ALT1, ALT2],
+    #   ... }
+    bi_dict = {lw:val[keyname] for lw,val in lwdict.items()}
+    return bi_dict
 
 def locate_lwlist():
     LWLISTS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../data/loanwords"))
@@ -203,53 +243,87 @@ def locate_lwlist():
         assert user_feedback == "YES, continue to annotation."
         
         return filename
-    
+    # If the checks fail, let the user know he failed tragically. 
+    # then try again.
     except AssertionError:
         console.print(Rule(style="red"))
         console.print("Hmm, something didn't quite go right. Let's try again:")
         return locate_lwlist()
+###############################################
 
-def split_punctuation(sentence: str)-> str:
-    # TODO: implement deterministic punctuation splitting and de-splitting
-    # aaaX_a (done._)
-    sentence = re.sub(r'([\.,;:\?!"\'\-“])\s', r' \1 ', sentence)
-    # aaXaa (Top-Ten)
-    sentence = re.sub(r'([\-])', r' \1 ', sentence)
-    # _Xaaaa (_"The)
-    sentence = re.sub(r'\s(["\'„\?!])', r' \1 ', sentence)
-    return sentence
 
-def desplit_punctuation(sentence: str)-> str:
-    # TODO: implement deterministic punctuation splitting and de-splitting
-    sentence = re.sub(r'([\.,;:\?!"\'\-“])\s', r' \1 ', sentence)
-    sentence = re.sub(r'([\-])', r' \1 ', sentence)
-    sentence = re.sub(r'\s(["\'„\?!])', r' \1 ', sentence)
-    return sentence
 
-def find_loanwords_in_sentence(sentence: str, lw_list: list[str], full_match_only: bool=True):
-    found_words = []
-    # sentence = split_punctuation(sentence)
-    # sentence = tok.utokenize_string(sentence)
-    # console.log(tok.lang_code)
+###############################################
+############# MATCHING LOANWORDS ###############
+def diacriticagnostic_matching(sentence: str, lw_list: set|list) -> set:
+    matches = []
+    # precompute the "stripped sentence" instead of stripping the sentence with each lw we're checking
+    console.log("type(sentence) ", type(sentence))
+    sentence_stripped = araby.strip_diacritics(sentence)
     for lw in lw_list:
-        lw = lw.strip("\n")
-        # only match full
-        if full_match_only:
-            lw = f' {lw} '
-        # ^ not necessary, i think?
-        if lw in sentence:
-            lw = lw.strip()
-            found_words.append(lw)
-        elif lw.lower() in sentence:
-            found_words.append(lw.lower())
+        if (lw in sentence) or (lw in sentence_stripped):
+            matches.append(lw)
+        elif araby.strip_diacritics(lw) in sentence or araby.strip_diacritics(lw) in sentence_stripped:
+            matches.append(araby.strip_diacritics(lw))
+    return matches
+
+
+def find_loanwords_in_sentence(sentence: str, lw_list: list[str] | set[str], full_match_only: bool=True, abjad_match: bool=False):
+    found_words = []
+    console.log("type(sentence) ", type(sentence))
+    if abjad_match:
+        found_words = diacriticagnostic_matching(sentence, lw_list)
+    else:
+        for lw in lw_list:
+            lw = lw.strip("\n")
+            # only match full
+            if full_match_only:
+                lw = f' {lw} '
+            # ^ not necessary, i think?
+            if lw in sentence:
+                lw = lw.strip()
+                found_words.append(lw)
+            elif lw.lower() in sentence:
+                found_words.append(lw.lower())
     return found_words
 
 
+def highlight_all_loanwords(sentence, lw_candidates, abjad: bool=False):
+
+    # console.log(tok.lang_code)
+    full_sentence = sentence.split()
+    # console.log(all_words)
+    sent_so_far = ""
+    if abjad:
+        for word in full_sentence:
+            # is NOT a lw-candidate
+            if (word not in lw_candidates) and (araby.strip_diacritics(word) not in lw_candidates):
+                sent_so_far = f'{sent_so_far}{word} '
+            # IS a lw-candidate
+            else:
+                console.print(sent_so_far,end="")
+                console.print(word, style=MARK_LW, end="")
+                sent_so_far = " "
+    else:
+        for word in full_sentence:
+            # is NOT a lw-candidate
+            if word not in lw_candidates and word.lower() not in lw_candidates:
+                sent_so_far = f'{sent_so_far}{word} '
+            # IS a lw-candidate
+            else:
+                console.print(sent_so_far,end="")
+                console.print(word, style=MARK_LW, end="")
+                sent_so_far = " "
+    console.print(sent_so_far)
+##################################################
+
+
+
+########################################
 ########### INTERRUPT MENUS ############
 def interrupt_menu_main():
     options = ["RESTART annotation of the current sentence (already made annotations for this sentence will be lost)", "DISCARD the current Sentence, continue with the next one", "QUIT the annotation process."]
     try:
-        # console.print(Rule(title="Keyboard Interrupt", style="red", characters="#"))
         console.clear()
         console.print("\n", Rule(style="red", characters="#"))
         choice = questionary.select(
@@ -259,9 +333,7 @@ def interrupt_menu_main():
             choices=options,
             use_shortcuts=True,
             default=None,
-            # show_selected=True,
             pointer=f'>>',
-            # pointer=f'{(position-7)*" "}>>'
             ).unsafe_ask()
     # In case of an additional press of CTRL+C, assume the annotator wants to quit the annotation process
     except KeyboardInterrupt:
@@ -276,7 +348,7 @@ def interrupt_menu_main():
     # 3: EXIT annotation
     elif choice == options[2]:
         raise ExitAnnotation
-    
+
 
 def interrupt_startup():
     options = ["TRY startup AGAIN.", "EXIT annotation (already?!)"]
@@ -293,7 +365,6 @@ def interrupt_startup():
             default=None,
             # show_selected=True,
             pointer=f'>>',
-            # pointer=f'{(position-7)*" "}>>'
             ).unsafe_ask()
     # In case of an additional press of CTRL+C, assume the annotator wants to quit the annotation process
     except KeyboardInterrupt:
@@ -305,9 +376,6 @@ def interrupt_startup():
     # 3: EXIT annotation
     elif choice == options[1]:
         raise ExitAnnotation
-    # # 2: DISCARD sentence
-    # elif choice == options[2]:
-    #     raise DiscardSentence
 
 
 def interrupt_manual_replacement():
@@ -321,7 +389,6 @@ def interrupt_manual_replacement():
         choices=options,
         use_shortcuts=True,
         default=None,
-        # show_selected=True,
         pointer=f'>>',
     ).ask()
     if choice == options[0]:
@@ -330,16 +397,7 @@ def interrupt_manual_replacement():
         raise SaveAndMoveOn
     if choice == options[2]:
         raise DiscardSentence
-
+####################################################
 
 if __name__ == "__main__":
-    sent = "@ Ma wurde in Hongkong geboren , studierte an der New York University und der Harvard Law School und war im Besitz einer amerikanischen „ Green Card @"" für dauerhaft Ansässige . @"
-    sent = "Ma wurde in Hongkong geboren, studierte an der New York University und der Harvard Law School und war im Besitz einer amerikanischen „Green Card"" für dauerhaft Ansässige."
-    lw_candidates = ["University", "Law", "School", "Green", "Card"]
-    detokenizer = detokenize.Detokenizer("deu")
-    # highlight_all_loanwords(sent, lw_candidates, detokenizer)
-
-    tokenizer = utokenize.Tokenizer("deu")
-    print(sent)
-    print(tokenizer(sent))
-    print(detokenizer(sent))
+    pass
