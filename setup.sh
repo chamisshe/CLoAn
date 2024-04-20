@@ -5,7 +5,8 @@ source .venv-cloan/bin/activate
 pip install -r requirements.txt
 
 echo -e ".venv-cloan\nsetup.bat" > .gitignore
-
+mkdir "data/marking"
+mkdir "data/output"
 rm setup.bat
 
 git pull
