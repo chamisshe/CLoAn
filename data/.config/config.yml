@@ -1,0 +1,37 @@
+all_languages:
+- german
+- french
+- kurdish-central
+- russian
+- greek
+- farsi
+- test
+corpora:
+  FLORES+dev: C:\Users\mhess\.bucket\floresp-v2.0-rc.2\dev
+  FLORES+devtest: C:\Users\mhess\.bucket\floresp-v2.0-rc.2\devtest
+filenames:
+  FLORES+dev:
+    farsi: dev.pes_Arab
+    french: dev.fra_Latn
+    german: dev.deu_Latn
+    greek: dev.ell_Grek
+    russian: dev.rus_Cyrl
+    test: dev.test_Latn
+  FLORES+devtest:
+    farsi: devtest.pes_Arab
+    french: devtest.fra_Latn
+    german: devtest.deu_Latn
+    greek: devtest.ell_Grek
+    kurdish-central: devtest.ckb_Arab
+    russian: devtest.rus_Cyrl
+    test: devtest.test_Latn
+find_alternatives:
+  farsi: bi-dict
+  german: wordnet
+show_demo: false
+wordlists:
+  farsi: farsi_loanwords.json
+  german: german_loanwords.tsv
+wordnet:
+  french: omw-fr
+  german: odenet
