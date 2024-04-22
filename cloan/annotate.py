@@ -400,14 +400,12 @@ def second_pass_cli(lw_list: list[str], sentence: str, language: str) -> dict[st
 
 
 def first_pass_sentence_annotation(sentence: str, lw_list, position, marking_dict, language: str, mode="wordlist") -> dict:
-    console.log(bool(lw_list))
 
     sentence = sentence.strip("\n")
     
     console.print(f'{yellowbold("Sentence")} ({(str(position))}):', end="")
     if mode == "wordlist" and (lw_list):
         # tokenize sentence for matching
-        console.log("running first_pass_sentence_annotation")
         sentence = tokenizer.utokenize_string(sentence)
         lw_candidates = find_loanwords_in_sentence(sentence, lw_list, abjad_match=(language in ARABIC_SCRIPT))
         highlight_all_loanwords(sentence, lw_candidates, abjad=(language in ARABIC_SCRIPT))
@@ -437,7 +435,7 @@ def first_pass_sentence_annotation(sentence: str, lw_list, position, marking_dic
     ).unsafe_ask()
     except KeyboardInterrupt:
         interrupt_menu_main()
-    console.log(user_choices)
+    # console.log(user_choices)
     for choice, abbr in choices.items():
         if choice in user_choices:
             marking_dict[str(position)][abbr] = True
@@ -487,7 +485,7 @@ def first_pass(language: str,
     try:
         console.log("Starting iteration")
         for sentence in sentences[position:]:
-            console.log("first iteration")
+            # console.log("first iteration")
             try:
                 marking_dict = first_pass_sentence_annotation(sentence, lw_list, position, marking_dict, language)
             except ResetSentence:
@@ -511,7 +509,7 @@ def first_pass(language: str,
             save_position_and_pass(language=language, position=position, n_pass=n_pass)
         with open(marking_file, 'w', encoding="utf-8") as f:
             console.log("Saving marking dict")
-            console.log(marking_dict)
+            # console.log(marking_dict)
             json.dump(marking_dict, f, indent=4, separators=(',', ': '))
         # propagate the error upwards
         raise ExitAnnotation
@@ -535,8 +533,8 @@ def second_pass_extracting(language: str,
 
     ##### FILENAMES #####
     annmem_path = f'{DATA_PATH}internal/annotation_memory-{language}.json'
-    marking_file = os.path.abspath(f'{DATA_PATH}marking/_marking{corpus_name}_{language}.json')
-    output_file = os.path.abspath(f"{DATA_PATH}output/OUT_{corpus_name}_{language}.json")
+    marking_file = os.path.abspath(f'{DATA_PATH}/marking/_marking{corpus_name}_{language}.json')
+    output_file = os.path.abspath(f"{DATA_PATH}/output/OUT_{corpus_name}_{language}.json")
     # console.log("fpm: ", first_pass_markings)
     if first_pass_markings == {}:
         with open(marking_file, 'r', encoding="utf-8") as f:

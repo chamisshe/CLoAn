@@ -199,7 +199,7 @@ def load_lwlist(language=str) -> set:
     return lwlist
 
 def load_bidict(language=str) -> dict:
-    lw_dict_path = load_config()["wordlists"][language]
+    lw_dict_path = os.path.abspath(os.path.join(f'{DATA_PATH}/loanwords/',load_config()["wordlists"][language]))
     with open(lw_dict_path, "r", encoding="utf-8") as f:
         lwdict = json.load(f)
     # possible keynames: 
@@ -263,7 +263,7 @@ def locate_lwlist():
 def diacriticagnostic_matching(sentence: str, lw_list: set|list) -> set:
     matches = []
     # precompute the "stripped sentence" instead of stripping the sentence with each lw we're checking
-    console.log("type(sentence) ", type(sentence))
+    # console.log("type(sentence) ", type(sentence))
     sentence_stripped = araby.strip_diacritics(sentence)
     for lw in lw_list:
         if (lw in sentence) or (lw in sentence_stripped):
@@ -275,7 +275,6 @@ def diacriticagnostic_matching(sentence: str, lw_list: set|list) -> set:
 
 def find_loanwords_in_sentence(sentence: str, lw_list: list[str] | set[str], full_match_only: bool=True, abjad_match: bool=False):
     found_words = []
-    console.log("type(sentence) ", type(sentence))
     if abjad_match:
         found_words = diacriticagnostic_matching(sentence, lw_list)
     else:
