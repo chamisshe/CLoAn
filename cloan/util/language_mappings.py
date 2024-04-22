@@ -2,7 +2,7 @@ import os
 DATA_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../data/")
 
 
-NLLB_NAMES = {
+FLORES_NAMES = {
     "english" : "eng_Latn",
     "en" : "eng_Latn",
     "german" : "deu_Latn",

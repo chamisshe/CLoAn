@@ -7,17 +7,17 @@ all_languages:
 - farsi
 - test
 corpora:
-  NLLB-dev: C:\Users\mhess\.bucket\floresp-v2.0-rc.2\dev
-  NLLB-devtest: C:\Users\mhess\.bucket\floresp-v2.0-rc.2\devtest
+  FLORES+dev: C:\Users\mhess\.bucket\floresp-v2.0-rc.2\dev
+  FLORES+devtest: C:\Users\mhess\.bucket\floresp-v2.0-rc.2\devtest
 filenames:
-  NLLB-dev:
+  FLORES+dev:
     farsi: dev.pes_Arab
     french: dev.fra_Latn
     german: dev.deu_Latn
     greek: dev.ell_Grek
     russian: dev.rus_Cyrl
     test: dev.test_Latn
-  NLLB-devtest:
+  FLORES+devtest:
     farsi: devtest.pes_Arab
     french: devtest.fra_Latn
     german: devtest.deu_Latn

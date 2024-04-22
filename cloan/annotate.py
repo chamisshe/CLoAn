@@ -25,7 +25,7 @@ import pyperclip
 import pyautogui
 
 
-from util.language_mappings import NLLB_NAMES, WORDNET_NAMES, ARABIC_SCRIPT #, GET_FILENAMES, AVAILABLE_LANGUAGES
+from util.language_mappings import FLORES_NAMES, WORDNET_NAMES, ARABIC_SCRIPT #, GET_FILENAMES, AVAILABLE_LANGUAGES
 from util.util import locate_lwlist,\
                         load_lwlist,\
                         load_config,\

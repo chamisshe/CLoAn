@@ -71,6 +71,8 @@ def which_pass(language) -> int:
         return n_pass
     except KeyError:
         return 1
+    except json.decoder.JSONDecodeError:
+        return 1
 
 
 def start_annotating_from_sent_x(num_sents):
@@ -138,8 +140,11 @@ def load_position(language, num_sentences) -> int:
 
 def save_position_and_pass(language, position, n_pass: int=1):
     # save file position
-    with open(PERSIST, "r", encoding="utf-8") as f:
-        memory = json.load(f)
+    try:
+        with open(PERSIST, "r", encoding="utf-8") as f:
+            memory = json.load(f)
+    except json.decoder.JSONDecodeError:
+        memory = {}
     try:
         memory[language]["position"] = position
         memory[language]["pass"] = n_pass
