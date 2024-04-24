@@ -7,8 +7,8 @@ all_languages:
 - farsi
 - test
 corpora:
-  FLORES+dev: C:\Users\mhess\.bucket\floresp-v2.0-rc.2\dev
-  FLORES+devtest: C:\Users\mhess\.bucket\floresp-v2.0-rc.2\devtest
+  FLORES+dev: 
+  FLORES+devtest: 
 filenames:
   FLORES+dev:
     farsi: dev.pes_Arab
@@ -28,9 +28,10 @@ filenames:
 find_alternatives:
   farsi: bi-dict
   german: wordnet
-show_demo: false
+show_demo: true
 wordlists:
   farsi: farsi_loanwords.json
+  french: french_loanwords.tsv
   german: german_loanwords.tsv
 wordnet:
   french: omw-fr

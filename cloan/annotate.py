@@ -757,14 +757,3 @@ def main(corpus, lang, mode="WordNet"):
 
 if __name__ == "__main__":
     main()
-    # print(wordnet.lexicons())
-    # annotate(
-    # est", remember_position=True, load_and_save_annotation_memory=True)
-
-
-    # print(console.height)
-    # TODO:
-    # - Startup
-    # - Demo
-    # ...
-    # n: packaging

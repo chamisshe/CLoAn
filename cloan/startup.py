@@ -75,13 +75,15 @@ def check_corpus(corpus_name: str|None) -> str:
         except KeyError:
             console.print(Rule(style="red"))
             console.print("The name of the corpus you entered was not recognized.\n")
+    # TODO: use questionary.path to look for the path
     corpus_name, corpus_path=user_choose_corpus()
     return corpus_name, corpus_path
 
 
 
 ######### LANG checking / FILE loading
-def check_language(language, corpus_name, corpus_path):
+def check_language(language: str, corpus_name: str, corpus_path: str):
+    language = language.lower()
     if new_corpus:
         console.print(Rule(style="#fc9e32"))
         console.print("It seems we don't know that corpus all too well yet.")
@@ -100,7 +102,7 @@ def check_language(language, corpus_name, corpus_path):
             return language, file_path
         except KeyError:
             console.print(f"The language '{language}' wasn't recognized.")
-            language, file_path = user_choose_language()
+            language, file_path = user_choose_language(corpus_name=corpus_name, corpus_path=corpus_path)
             file_path = config["filenames"][corpus_name][language]
             return language, file_path
 
