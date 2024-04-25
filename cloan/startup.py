@@ -2,7 +2,6 @@ from rich.text import Text
 from rich.console import Console
 from rich.rule import Rule
 import os
-import copy
 import yaml
 import questionary
 
@@ -31,6 +30,7 @@ def locate_corpus(corpus_name) -> str:
     """Make the user enter the directory of a given corpus."""
     try:
         console.print(Rule())
+        # TODO: use questionary.path to look for the path
         corpus_path = console.input(Text(f"The program doesn't know yet where you have stored the files of the {corpus_name} Corpus.\n\n")
                                     + yellow_light(f"Please enter (or paste) the path of the DIRECTORY where the files of the {corpus_name} Corpus can be found:\n"))
         # check if path exists
@@ -71,11 +71,13 @@ def check_corpus(corpus_name: str|None) -> str:
     if corpus_name is not None:
         try:
             corpus_path = config["corpora"][corpus_name]
+            if corpus_path is None:
+                console.log("working as intended")
+                corpus_path = locate_corpus(corpus_name)
             return corpus_name, corpus_path
         except KeyError:
             console.print(Rule(style="red"))
             console.print("The name of the corpus you entered was not recognized.\n")
-    # TODO: use questionary.path to look for the path
     corpus_name, corpus_path=user_choose_corpus()
     return corpus_name, corpus_path
 

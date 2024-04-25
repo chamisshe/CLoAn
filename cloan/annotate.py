@@ -56,8 +56,7 @@ remember_position = True
 wipe_previous = False
 find_alternatives_mode = ""
 
-from utoken import utokenize
-from utoken import detokenize
+from utoken import utokenize, detokenize
 tokenizer = utokenize.Tokenizer()
 detokenizer = detokenize.Detokenizer()
 
@@ -403,7 +402,7 @@ def first_pass_sentence_annotation(sentence: str, lw_list, position, marking_dic
 
     sentence = sentence.strip("\n")
     
-    console.print(f'{yellowbold("Sentence")} ({(str(position))}):', end="")
+    console.print(f'{yellowbold("Sentence")} ({(str(position))}):\n', end="")
     if mode == "wordlist" and (lw_list):
         # tokenize sentence for matching
         sentence = tokenizer.utokenize_string(sentence)
