@@ -38,7 +38,7 @@ Once you've installed the tool (instructions in the `README`), you'll want to ru
 ###### Activating the venv 
 <details>
     
-<summary>**Mac/Linux**<summary/>
+<summary>**Mac/Linux**</summary>
 
 On a UNIX-based system such as Linux or MacOS, run the following script:
     
@@ -50,7 +50,7 @@ source activate.sh
 
 <details>
 
-<summary>**Windows**<summary/>
+<summary>**Windows**</summary>
 
 On Windows, run:
 
@@ -76,7 +76,7 @@ The first time you try to annotate any corpus, _CLoAn_ will need to know where t
 
 <details>
 
-<summary>**Example**<summary/>
+<summary>**Example**</summary>
 
 Let's say the FLORES+ dataset is stored in the following directory:<br>`C:/Users/Gimli/Documents/floresp-v2.0-rc.2`
 
@@ -96,7 +96,7 @@ The good thing is: Once you've told CLoAn the (correct) path to the corpus, it r
 
 <details>
 
-<summary>**Under the hood...**<summary/>
+<summary>**Under the hood...**</summary>
 
 ...meta-information such as paths, filenames, language names are stored under `data/.config/config.yml`. When starting _CLoAn_, it tries to take as much info as it can from this config-file. When information is missing, it (ideally) asks the user to provide the necessary info. Less ideally, if it's an error I didn't encounter yet and thus didn't put any precautions in place, starting up fails.<br>
 It is recommended that you **don't mess with the config file** unless you really know what you're doing.
@@ -111,7 +111,7 @@ Different corpora might use different naming schemes. Thus, _CLoAn_ needs to rem
 If you're choosing a different language (`> Other`), _CLoAn_ will ask for the filename, which we'll call `<filename>`. 
 
 <details> 
-<summary>**Example**<summary/>
+<summary>**Example**</summary>
 
 Let's say you want to annotate the FLORES+devtest corpus in _Sindarin_:
 
@@ -138,7 +138,7 @@ To do so, you need to use the appropriate flags:
 
 <details>
 
-<summary>**Example**<summary/>
+<summary>**Example**</summary>
 
 ```bash
 python annotate.py -c FLORES+devtest -l Sindarin
@@ -187,7 +187,7 @@ You'll be presented with a multi-select menu. You can navigate it with the arrow
 
 <details> 
 
-<summary> **Definition** <summary/>
+<summary> **Definition** </summary>
 
 From [Wikipedia](https://en.wikipedia.org/wiki/Loanword): <br>
 _"A loanword is a word at least partly assimilated from one language (the donor language) into another language (the recipient or target language), through the process of borrowing."_
@@ -278,7 +278,7 @@ To keep track of all the replacements we make, manual replacement works in three
 
 <details> 
 
-<summary>**Example**<summary/>
+<summary>**Example**</summary>
 
 Goal: Replace _suave_ by _smooth_
 
