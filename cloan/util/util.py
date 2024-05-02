@@ -37,6 +37,48 @@ def load_tok_detok(lang: str) -> tuple[utokenize.Tokenizer,detokenize.Detokenize
 ###############################################
 
 
+
+##### ANNOTATION MEMORY #######################
+def update_annmem(annotation_memory: dict[str, dict[str, set[str]]],
+                       replacements: dict[str, str])  -> dict[str, dict[str, set[str]]]:
+    """Update the bidirectional annotation memory.
+
+    Parameters
+    -
+    annotation_memory : the annotation memory.
+    replacements : a dictionary containing mappings in the following format:
+        {loanword : native}
+    """
+    for loan,native in replacements.items():
+        try:
+            annotation_memory["loan-native"][loan].add(native)
+        except KeyError:
+            annotation_memory["loan-native"][loan] = {native}
+        
+        try:
+            annotation_memory["native-loan"][native].add(loan)
+        except KeyError:
+            annotation_memory["native-loan"][native] = {loan}
+    # console.log(annotation_memory)
+    return annotation_memory
+
+def save_annmem(annmem, path):
+    # initialize output dictionary (avoiding in-place modification)
+    out_annmem = {"loan-native" : {}, "native-loan" : {}}
+    
+    # Convert all sets to lists
+    for lw,alt_set in annmem["loan-native"].items():
+        out_annmem["loan-native"][lw] = list(alt_set)
+    for lw,alt_set in annmem["native-loan"].items():
+        out_annmem["native-loan"][lw] = list(alt_set)
+
+    # console.log(out_annmem)
+    
+    with open(path, 'w', encoding="utf-8") as am:
+        json.dump(out_annmem, am)
+###############################################
+
+
 ##### MANUAL EDITING ##########################
 def detect_changes(old_sent: str, new_sent: str):
     
@@ -60,6 +102,42 @@ def detect_changes(old_sent: str, new_sent: str):
 ###############################################
 
 
+def load_prev_output(path):
+    try:
+        with open(path, 'r', encoding="utf-8") as f:
+            # console.log("found existing output file")
+            results = json.load(f)
+    except FileNotFoundError:
+        results = {}
+    except json.decoder.JSONDecodeError:
+        results = {}
+
+    return results
+
+
+def single_or_dual_pass():
+    msg = "Would you like to "
+    console.print(Rule())
+    console.print("You can choose between two options:\n\n- ",
+                  yellowbold('SINGLE PASS:'), 
+                  "Go through the corpus once, decide for each sentence whether it contains any replaceable words. Modify the sentence right then and there.\n\n- ",
+                  yellowbold('DUAL PASS:'),
+                  "Go through the corpus twice: In the first pass, you'll flag whether a sentence contains any replaceable words..\nIn a second pass, you'll modify the sentences you flagged before.\n")
+    
+    try:
+        user_choice = questionary.select(
+            message=msg,
+            choices=["SINGLE PASS (recommended)", "DUAL PASS"],
+            style=default_select_style,
+            use_shortcuts=True,
+            default=None,
+            qmark="",
+        ).unsafe_ask()
+
+        n_pass = -1 if (user_choice == "SINGLE PASS (recommended)") else 1
+        return n_pass
+    except KeyboardInterrupt:
+        interrupt_menu_main()
 
 ###############################################
 ################# PERSISTENCE #################
@@ -70,9 +148,9 @@ def which_pass(language) -> int:
         n_pass = persistence[language]["pass"]
         return n_pass
     except KeyError:
-        return 1
+        return single_or_dual_pass()
     except json.decoder.JSONDecodeError:
-        return 1
+        return single_or_dual_pass()
 
 
 def start_annotating_from_sent_x(num_sents):
@@ -102,11 +180,11 @@ def load_position(language, num_sentences) -> int:
         # open the memory file, load the saved position for the current language
         with open(PERSIST, "r", encoding="utf-8") as f:
             persistence = json.load(f)
-            console.log("opened persistence file")
+            # console.log("opened persistence file")
         
         position = persistence[language]["position"]
         n_pass = persistence[language]["pass"]
-        console.log(position)
+        # console.log(position)
         # if a file has already been passed through completely:
         if position >= num_sentences and n_pass == 2:
             # Ask the user whether they want to reannotate the whole process again
@@ -138,7 +216,7 @@ def load_position(language, num_sentences) -> int:
     return position
 
 
-def save_position_and_pass(language, position, n_pass: int=1):
+def save_position_and_pass(language, position, n_pass: int=1, time: float=0.):
     # save file position
     try:
         with open(PERSIST, "r", encoding="utf-8") as f:
@@ -148,12 +226,13 @@ def save_position_and_pass(language, position, n_pass: int=1):
     try:
         memory[language]["position"] = position
         memory[language]["pass"] = n_pass
+        memory[language]["time"] += time
     except KeyError:
-        memory[language] = {"position": position, "pass": n_pass}
+        memory[language] = {"position": position, "pass": n_pass, "time":time}
     # console.log(memory)
     with open(PERSIST, 'w', encoding="utf-8") as f:
         json.dump(memory, f)
-    console.log("Saved current position")
+    # console.log("Saved current position")
 ###############################################
 
 
@@ -162,7 +241,7 @@ def save_position_and_pass(language, position, n_pass: int=1):
 ################# CONFIG ######################
 def load_config():
     config_path = os.path.abspath(os.path.join(DATA_PATH, ".config/config.yml"))
-    console.log(config_path)
+    # console.log(config_path)
     with open(config_path, 'r', encoding='utf-8') as f:
         config_dict = yaml.safe_load(f)
     return config_dict
@@ -179,7 +258,11 @@ def save_config(config_dict):
 ###############################################
 ############# LOADING LOANWORDS ###############
 def load_lwlist(language=str) -> set:
-    lwlist_path = os.path.abspath(os.path.join(DATA_PATH, "loanwords",load_config()["wordlists"][language]))
+    try:
+        filename = load_config()["wordlists"][language]
+    except KeyError:
+        locate_lwlist()
+    lwlist_path = os.path.abspath(os.path.join(DATA_PATH, "loanwords", filename))
     with open(lwlist_path, "r", encoding="utf-8") as lwfile:
         # ASSUMES FORMAT: 
         #   {   LOANWORD1 : {other_info},

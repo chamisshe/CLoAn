@@ -103,7 +103,8 @@ def check_language(language: str, corpus_name: str, corpus_path: str):
             file_path = config["filenames"][corpus_name][language]
             return language, file_path
         except KeyError:
-            console.print(f"The language '{language}' wasn't recognized.")
+            console.print(Rule(style="orange"))
+            console.log(f"The language '{language}' wasn't recognized.")
             language, file_path = user_choose_language(corpus_name=corpus_name, corpus_path=corpus_path)
             file_path = config["filenames"][corpus_name][language]
             return language, file_path

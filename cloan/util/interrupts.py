@@ -17,3 +17,6 @@ class ExitAnnotation(Exception):
 
 class SaveAndMoveOn(Exception):
     """Save what can be saved, move on with the next sentence"""
+
+class PreviousSentence(Exception):
+    """Go back a single sentence."""
