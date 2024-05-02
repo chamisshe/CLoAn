@@ -1043,6 +1043,7 @@ def annotate_wrapper(language: str,
             lwlist = load_lwlist(language)
             console.log("loaded Loanword-list") #keep
         except FileNotFoundError:
+            console.print(Rule())
             console.log(f"Couldn't find a list of loanwords for {language}") #keep
             options = ["YES, continue without loanword-list", "NO, locate loanword-list"]
             choice = questionary.select(
@@ -1051,8 +1052,13 @@ def annotate_wrapper(language: str,
                 style=default_select_style,
             ).ask()
             if choice == options[0]:
+                # save "null"-filename
+                config = load_config()
+                filename = None
+                config["wordlists"][language] = filename
+                save_config(config)
+                # set lwlist to empty, evaluates to false
                 lwlist = set()
-                # use_lwlist = False
             else:
                 filename = locate_lwlist()
                 # save filename to config
@@ -1060,7 +1066,6 @@ def annotate_wrapper(language: str,
                 config["wordlists"][language] = filename
                 save_config(config)
                 lwlist = load_lwlist(lwlist_path=f'{DATA_PATH}loanwords/{filename}')
-                # use_lwlist = True
         # console.log(lwlist)
         # Get from persistence-store: do first or second pass
         

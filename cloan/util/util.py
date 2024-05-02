@@ -101,7 +101,7 @@ def detect_changes(old_sent: str, new_sent: str):
         return new_sent[start:stop], stop
 ###############################################
 
-
+######## OUTPUT ##########
 def load_prev_output(path):
     try:
         with open(path, 'r', encoding="utf-8") as f:
@@ -115,6 +115,7 @@ def load_prev_output(path):
     return results
 
 
+####### SINGLE/DUAL PASS ###############
 def single_or_dual_pass():
     msg = "Would you like to "
     console.print(Rule())
@@ -138,6 +139,8 @@ def single_or_dual_pass():
         return n_pass
     except KeyboardInterrupt:
         interrupt_menu_main()
+###############################################
+
 
 ###############################################
 ################# PERSISTENCE #################
@@ -248,7 +251,7 @@ def load_config():
         
 
 def save_config(config_dict):
-    config_path = os.path.abspath(os.path.join(DATA_PATH), ".config/config.yml")
+    config_path = os.path.abspath(os.path.join(DATA_PATH, ".config/config.yml"))
     with open(config_path, "w", encoding="utf-8") as config_stream:
         yaml.dump(config_dict, config_stream)
 ###############################################
@@ -260,8 +263,10 @@ def save_config(config_dict):
 def load_lwlist(language=str) -> set:
     try:
         filename = load_config()["wordlists"][language]
+        if filename == None:
+            return set()
     except KeyError:
-        locate_lwlist()
+        raise FileNotFoundError
     lwlist_path = os.path.abspath(os.path.join(DATA_PATH, "loanwords", filename))
     with open(lwlist_path, "r", encoding="utf-8") as lwfile:
         # ASSUMES FORMAT: 
@@ -306,7 +311,8 @@ def load_bidict(language=str) -> dict:
 def locate_lwlist():
     LWLISTS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../data/loanwords"))
     try:
-        console.print(f"Make sure your file is located in the following directory: ")
+        console.print(Rule())
+        console.print(f"Locating loanword-list\nMake sure your file is located in the following directory: ")
         console.print(f"\n    {orange_light(LWLISTS_PATH)}\n")
 
         # ask the user to enter the directory-path
