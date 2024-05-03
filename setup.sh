@@ -8,9 +8,14 @@ pip install -r requirements.txt
 sed -i "s/with open(filename)/with open(filename, encoding='utf-8')/g" .venv-cloan/lib64/*/site-packages/utoken/util.py
 sed -i "s/with open(filename)/with open(filename, encoding='utf-8')/g" .venv-cloan/lib/*/site-packages/utoken/util.py
 
-echo -e ".venv-cloan\nsetup.bat" > .gitignore
+echo .venv-cloan > .gitignore
+echo setup.bat >> .gitignore
+echo setup.sh >> .gitignore
+echo activate.sh >> .gitignore
+
 mkdir "data/marking"
 mkdir "data/output"
+
 rm setup.bat
 
 git pull
