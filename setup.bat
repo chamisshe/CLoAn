@@ -1,13 +1,21 @@
-python -m venv .venv-cloan
+@echo off
+(
+    @echo on
+    python -m venv .venv-cloan
+    call .\.venv-cloan\Scripts\activate.bat
+    pip install -r requirements.txt
+) &&(
+    powershell -Command  "((Get-Content -path .venv-cloan\Lib\site-packages\utoken\util.py -Raw).Replace('with open(filename)', 'with open(filename, encoding=''utf-8'')') | Set-Content -Path .venv-cloan\Lib\site-packages\utoken\util.py)"
+)
+    echo .venv-cloan> .gitignore
+    echo setup.bat>> .gitignore
+    echo setup.sh>> .gitignore
 
-.venv-cloan/Scripts/activate
+    mkdir "data\marking"
+    mkdir "data\output"
 
-pip install -r requirements.txt
+    del setup.sh
 
-((Get-Content -path ".4-venv-cloan\Lib\site-packages\utoken\util.py" -Raw).Replace("with open(filename)", "with open(filename, encoding='utf-8')") | Set-Content -Path ".4-venv-cloan\Lib\site-packages\utoken\util.py")
-echo -e ".venv-cloan\nsetup.bat" > .gitignore
-mkdir "data\marking"
-mkdir "data\output"
-rm setup.sh
+    git pull
 
-git pull
+    deactivate
