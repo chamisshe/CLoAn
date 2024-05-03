@@ -22,7 +22,7 @@ def load_config(config_file: str="data/.config/config.yml") -> dict:
     return config_dict
 
 def save_config(config_dict, config_file: str="data/.config/config.yml"):
-    with open(config_file, "w", encoding="utf-8") as config_stream:
+    with open(os.path.abspath(os.path.join(ROOT,config_file)), "w", encoding="utf-8") as config_stream:
         yaml.dump(config_dict, config_stream)
     pass
 
