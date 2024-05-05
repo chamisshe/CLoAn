@@ -87,7 +87,6 @@ def check_corpus(corpus_name: str|None) -> str:
 
 ######### LANG checking / FILE loading
 def check_language(language: str, corpus_name: str, corpus_path: str):
-    language = language.lower()
     if new_corpus:
         console.print(Rule(style="#fc9e32"))
         console.print("It seems we don't know that corpus all too well yet.")
@@ -101,6 +100,7 @@ def check_language(language: str, corpus_name: str, corpus_path: str):
         
     # fast case: language was passed as an argument, and it's an existing corpus
     else:
+        language = language.lower()
         try:
             file_path = config["filenames"][corpus_name][language]
             return language, file_path
