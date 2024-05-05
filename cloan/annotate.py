@@ -700,7 +700,18 @@ def single_pass(language: str,
             if outdict_current_sent["only_loans_sentence"] != outdict_current_sent["only_native_sentence"]:
                 results[str(idx)] = outdict_current_sent
             # console.log(results)
+            
             idx += 1
+            # Save after each annotation
+            if remember_position:
+                # console.log("saving position")
+                save_position_and_pass(language=language, position=idx, n_pass=-1, time=time.time()-starttime)
+            with open(output_file, 'w', encoding="utf-8") as f:
+                # console.log("Saving results in:\n",yellow_light(output_file)) #keep
+                json.dump(results, f, indent=4, separators=(',', ': '))
+            if use_annotation_memory:
+                save_annmem(annotation_memory, path=annmem_path)
+            
             continue
 
         # EXCEPTION HANDLING
