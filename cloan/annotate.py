@@ -706,6 +706,7 @@ def single_pass(language: str,
             if remember_position:
                 # console.log("saving position")
                 save_position_and_pass(language=language, position=idx, n_pass=-1, time=time.time()-starttime)
+                starttime = time.time()
             with open(output_file, 'w', encoding="utf-8") as f:
                 # console.log("Saving results in:\n",yellow_light(output_file)) #keep
                 json.dump(results, f, indent=4, separators=(',', ': '))
