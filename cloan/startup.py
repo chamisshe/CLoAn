@@ -39,7 +39,7 @@ def locate_corpus(corpus_name) -> str:
         assert os.path.isdir(corpus_path)
     # ensure the passed string is a directory
     except AssertionError:
-        corpus_path = locate_corpus()
+        corpus_path = locate_corpus(corpus_name)
     config["corpora"][corpus_name] = corpus_path
     return corpus_path
 

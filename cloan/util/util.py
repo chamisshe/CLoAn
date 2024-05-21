@@ -415,7 +415,7 @@ def highlight_all_loanwords(sentence, lw_candidates, abjad: bool=False):
 ########################################
 ########### INTERRUPT MENUS ############
 def interrupt_menu_main():
-    options = ["RESTART annotation of the current sentence (already made annotations for this sentence will be lost)", "DISCARD the current Sentence, continue with the next one", "QUIT the annotation process."]
+    options = ["RESTART annotation of the current sentence (already made annotations for this sentence will be lost)", "DISCARD the current Sentence, continue with the next one", "GO BACK to the previous sentence", "QUIT the annotation process."]
     try:
         console.clear()
         console.print("\n", Rule(style="red", characters="#"))
@@ -438,8 +438,11 @@ def interrupt_menu_main():
     # 2: DISCARD sentence
     elif choice == options[1]:
         raise DiscardSentence
-    # 3: EXIT annotation
+    # 3: Go back 1 sentence
     elif choice == options[2]:
+        raise PreviousSentence
+    # 4: EXIT annotation
+    elif choice == options[3]:
         raise ExitAnnotation
 
 

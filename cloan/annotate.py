@@ -285,7 +285,8 @@ def select_and_edit_mono(focus_word: str, pre: list[str], post: list[str], direc
     post_string = " ".join(post)
     pre_string = " ".join(pre)
     skip_message="-SKIP WORD-"
-    choices = [skip_message, "-CUSTOM INPUT-", "-DISCARD SENTENCE ALTOGETHER-"]
+    # choices = [skip_message, "-CUSTOM INPUT-", "-DISCARD SENTENCE ALTOGETHER-"]
+    choices = [skip_message, "-CUSTOM INPUT-"]
     
     if find_alternatives_mode == "wordnet":
         choices.extend([wordform.__str__() 
@@ -724,6 +725,12 @@ def single_pass(language: str,
             console.log("Raised DiscardSentence") #keep
             # move on by incrementing the index
             idx += 1
+            continue
+        
+        except PreviousSentence:
+            console.log("Going back 1 sentence...")
+            # move back by decrementing the index
+            idx -= 1
             continue
 
         except ExitAnnotation:
