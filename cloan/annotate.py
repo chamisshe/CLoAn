@@ -31,9 +31,8 @@ from util.util import locate_lwlist,\
                         load_config,\
                         load_bidict,\
                         save_config,\
-                        load_position,\
-                        save_position_and_pass,\
-                        which_pass,\
+                        persistence_load,\
+                        persistence_save,\
                         find_loanwords_in_sentence,\
                         highlight_all_loanwords, \
                         detect_changes, \
@@ -131,6 +130,7 @@ def manual_replacement(sentence: str, direction="replace-loans") -> tuple[str, d
     ######### MANUAL REPLACEMENT #########
     # instruction = "The manual replacement of loanwords works in three ste"
     # console.print(instruction, style="yellow")
+
     while True:
         try:
             old_sentence = sentence
@@ -188,6 +188,10 @@ def manual_replacement(sentence: str, direction="replace-loans") -> tuple[str, d
         except SaveAndMoveOn:
         # break the whileloop, and continue save results
             break
+        except KeyboardInterrupt:
+            console.log("raised ExitAnnotation, raising another ExitAnnotation")
+            raise ExitAnnotation
+            
             
 
     # console.log(replacements)
@@ -218,12 +222,13 @@ def edit_manual(sentence: str, position=False)-> str:
         with pyautogui.hold('ctrl'):
             pyautogui.press(["left"]*(position))
         pyautogui.press(["left"])
-    
+    # TODO fix 
     try:
         corrected_sentence = input()
+        return corrected_sentence
     except KeyboardInterrupt:
         interrupt_manual_replacement()
-    return corrected_sentence
+
 
 
 def edit(pre: str, selected: str, post: list[str])-> str:
@@ -418,6 +423,8 @@ def cli_replace_na(sentence: str, language: str) -> tuple[str,dict[str:str]]:
         return cli_replace_na(sentence, language)
     except KeyboardInterrupt:
         raise ExitAnnotation
+    except ExitAnnotation:
+        raise ExitAnnotation
     pass
 
 
@@ -493,54 +500,6 @@ def cli_replace_lw(lw_list: list[str], sentence: str, language: str) -> tuple[st
     except KeyboardInterrupt:
         raise ExitAnnotation
 
-
-def first_pass_sentence_annotation(sentence: str, lw_list, position, marking_dict, language: str, mode="wordlist") -> dict:
-
-    sentence = sentence.strip("\n")
-    
-    console.print(f'{yellowbold("Sentence")} ({(str(position))}):\n', end="")
-    if mode == "wordlist" and (lw_list):
-        # tokenize sentence for matching
-        sentence = tokenizer.utokenize_string(sentence)
-        lw_candidates = find_loanwords_in_sentence(sentence, lw_list, abjad_match=(language in ARABIC_SCRIPT))
-        highlight_all_loanwords(sentence, lw_candidates, abjad=(language in ARABIC_SCRIPT))
-    # UNIMPLEMENTED
-    elif mode.lower() in {"ce", "competing_entropies", "compents", "competingentropies"}:
-        sentence = tokenizer.utokenize_string(sentence)
-        console.print(sentence)
-        lw_candidates = None
-        # TODO: find loanword candidates by using a competing entropies model
-
-    else:
-        console.print(sentence)
-        lw_candidates = None
-    # console.log("marking_dict : ",marking_dict)
-    marking_dict[str(position)] = {"sentence": sentence,"candidates":lw_candidates}
-    
-    choices = {"Obvious & Replaceable loanwords":"contains-LW",
-                # NA = native alternatives
-                "Native words replaceable with loanwords":"contains-RN",
-                "Named Entities" : "contains-NE",
-                "Code-switching": "contains-CS"}
-    try:
-        user_choices = questionary.checkbox(
-        message="(multiselect) Does the following sentence contain one or multiple instances of: ",
-        style=default_select_style,
-        choices=choices.keys(),
-        default=None,
-        qmark="",
-    ).unsafe_ask()
-    except KeyboardInterrupt:
-        interrupt_menu_main()
-    # console.log(user_choices)
-    for choice, abbr in choices.items():
-        if choice in user_choices:
-            marking_dict[str(position)][abbr] = True
-        else:
-            marking_dict[str(position)][abbr] = False
-    # finally:
-    return marking_dict
-
 def single_pass(language: str,
                 corpus_name: str,
                 corpus_path: str,
@@ -565,7 +524,7 @@ def single_pass(language: str,
     ########### PERSISTENCE ########### 
     # If you want your annotation to continue from where you last left off:
     if remember_position:
-        position = load_position(language, num_sentences)
+        position = persistence_load(language, corpus_name=corpus_name, num_sentences=num_sentences)
         console.log("Starting annotation from sentence ", position) #keep
         # single pass mode
         n_pass = -1
@@ -706,7 +665,7 @@ def single_pass(language: str,
             # Save after each annotation
             if remember_position:
                 # console.log("saving position")
-                save_position_and_pass(language=language, position=idx, n_pass=-1, time=time.time()-starttime)
+                persistence_save(language=language, corpus_name=corpus_name, position=idx, time=time.time()-starttime)
                 starttime = time.time()
             with open(output_file, 'w', encoding="utf-8") as f:
                 # console.log("Saving results in:\n",yellow_light(output_file)) #keep
@@ -743,7 +702,7 @@ def single_pass(language: str,
     # progress saving that has to be done inside the current function (access to variables)
     if remember_position:
         console.print("saving position")
-        save_position_and_pass(language=language, position=idx, n_pass=-1, time=time.time()-starttime)
+        persistence_save(language=language, corpus_name=corpus_name, position=idx, time=time.time()-starttime)
 
     with open(output_file, 'w', encoding="utf-8") as f:
         console.log("Saving results in:\n",yellow_light(output_file)) #keep
@@ -753,288 +712,6 @@ def single_pass(language: str,
     if use_annotation_memory:
         save_annmem(annotation_memory, path=annmem_path)
     return results
-
-
-def first_pass(language: str,
-                corpus_name: str,
-                corpus_path: str,
-                file_path: str,
-                lw_list: list[str]) -> dict:
-    ######### LOAD SENTENCES
-    sents_path = os.path.join(corpus_path,file_path)
-    if not os.path.exists(os.path.abspath(f'{DATA_PATH}/marking')):
-        os.makedirs(f'{DATA_PATH}/marking')
-    marking_file = os.path.abspath(os.path.join(DATA_PATH,f'marking/_marking{corpus_name}_{language}.json'))
-
-    # Read sentences from file to list
-    with open(sents_path, "r", encoding="utf-8") as sentfile:
-        sentences = sentfile.readlines()
-    num_sentences = len(sentences)
-
-    # Get first-pass data
-    try:
-        with open(marking_file, 'r', encoding="utf-8") as f:
-            marking_dict = json.load(f)
-    except FileNotFoundError: 
-        marking_dict = {} 
-    except json.decoder.JSONDecodeError:
-        marking_dict = {}
-    if type(marking_dict) is not dict:
-        marking_dict = {}
-        
-    # PERSISTENCE
-    if remember_position:
-        position = load_position(language, num_sentences)
-        # console.log(position)
-        n_pass = 1
-
-
-    ##############################################
-    ############ FIRST PASS MAIN #################
-    console.log("1st pass:") #keep
-    idx = position
-
-        # timing
-    global starttime
-    starttime = time.time()
-
-    while idx < num_sentences:
-        try:
-            # update marking-dictionary with current sentence
-            sentence = sentences[idx]
-            marking_dict = first_pass_sentence_annotation(sentence, lw_list, position, marking_dict, language)
-            idx += 1
-            # if last sentence:
-            if idx == (num_sentences-1):
-                n_pass = 2
-                position = 0
-
-        except ResetSentence:
-            console.log("ResetSentence") #keep
-            continue
-        except DiscardSentence:
-            console.log("DiscardSentence") #keep
-            idx += 1
-            continue
-        except ExitAnnotation:
-            console.print("Exiting Annotation", end="\n", style="red bold")
-            with console.status("",spinner="simpleDots"):
-                time.sleep(.5)
-            break
-
-    # progress saving that has to be done inside the current function (access to variables)
-    if remember_position:
-        console.log("saving position") #keep
-        save_position_and_pass(language=language, position=idx, n_pass=n_pass, time=time.time()-starttime)
-    with open(marking_file, 'w', encoding="utf-8") as f:
-        console.log("Saving marking dict") #keep
-        # console.log(marking_dict)
-        json.dump(marking_dict, f, indent=4, separators=(',', ': '))
-    return marking_dict
-
-
-
-def second_pass_extracting(language: str,
-                           corpus_name: str,
-                        corpus_path: str,
-                        file_path: str,
-                        lw_list: list[str],
-                        first_pass_markings: dict):
-
-    ##### FILENAMES #####
-    annmem_path = os.path.abspath(f'{DATA_PATH}/internal/annotation_memory-{language}.json')
-    marking_file = os.path.abspath(f'{DATA_PATH}/marking/_marking{corpus_name}_{language}.json')
-    output_file = os.path.abspath(f"{DATA_PATH}/output/OUT_{corpus_name}_{language}.json")
-    # console.log("fpm: ", first_pass_markings)
-    if first_pass_markings == {}:
-        with open(marking_file, 'r', encoding="utf-8") as f:
-            first_pass_markings = json.load(f)
-        if first_pass_markings == {}:
-            console.log("Marking file empty; redirecting you to mark the corpus again (first pass)") #keep
-            first_pass_markings = first_pass(language=language, lw_list=lw_list,corpus_name=corpus_name, corpus_path=corpus_path,file_path=file_path)
-        elif type(first_pass_markings) is not dict:
-            console.log("The marking file does not contain a valid dictionary; redirecting you to mark the corpus again (first pass)") #keep
-            first_pass_markings = first_pass(language=language, lw_list=lw_list, corpus_name=corpus_name, corpus_path=corpus_path,file_path=file_path)
-    
-    # load previous output
-    results = load_prev_output(output_file)
-    
-    num_sentences = len(first_pass_markings)
-
-    ########### PERSISTENCE ########### 
-    # If you want your annotation to continue from where you last left off:
-    if remember_position:
-        position = load_position(language, num_sentences)
-    
-
-    ########### SET ALTERNATIVE-FINDING-MODE ############
-    config = load_config()
-    
-    global find_alternatives_mode
-    try:
-        find_alternatives_mode = config["find_alternatives"][language]
-    except KeyError:
-        find_alternatives_mode = ""
-    # use WORDNET to find alternatives
-    if find_alternatives_mode == "wordnet":
-        if language in WORDNET_NAMES.keys():
-            global wordnet
-            wordnet = wn.Wordnet(WORDNET_NAMES[language])
-            console.log("Using the following WordNets: ", wordnet.lexicons()) #keep
-        else:
-            console.log(f"Found no Wordnet-lexicon for {language}.") #keep
-            find_alternatives_mode = "wordnet"
-        # MAYBE TODO : wordnet download menu
-        # console.print(f"The following are available wordnet lexica that can be downloaded")
-    # use BILINGUAL-DICT to find alternatives
-    elif find_alternatives_mode == "bi-dict":
-        global bi_dict
-        bi_dict = load_bidict(language)
-
-
-    ############ FILE HYGIENE ############
-    # if wipe_previous:
-    #     pass
-
-    ######## LOAD ANNOTATION MEMORY ########
-    if use_annotation_memory:
-        console.log("Using annotation memory") #keep
-
-        global annotation_memory
-        try:
-            with open(annmem_path, "r", encoding="utf-8") as am:
-                _annotation_memory = json.load(am)
-            # json doesn't have sets, only lists - convert all lists to sets: 
-
-            for word, alt_list in _annotation_memory["native-loan"].items():
-                annotation_memory["native-loan"][word] = set(alt_list)
-            for word, alt_list in _annotation_memory["loan-native"].items():
-                annotation_memory["loan-native"][word] = set(alt_list)
-            console.log("loaded annotation memory") #keep
-            # console.log(annotation_memory)
-        except FileNotFoundError:
-            annotation_memory = {"native-loan": {},"loan-native": {}}
-            console.log("No file containing an Annotation-Memory could not be found.\nCreating file and starting annotation with an empty Annotation-Memory.") #keep
-            
-        except json.decoder.JSONDecodeError:
-            # global annotation_memory
-            # annotation_memory = {}
-            annotation_memory = {"native-loan": {},
-                     "loan-native": {}}
-            console.log("A file for the Annotation-Memory was found, but didn't contain a valid store.\nStarting annotation with an empty Annotation-Memory.") #keep
-
-    ########################################
-    ########## SECOND-PASS MAIN ############
-    console.print(Rule(title=f"SECOND PASS", characters="#", style="orange1"))
-    console.print(Rule(style="orange1"))
-
-        # timing
-    global starttime
-    starttime = time.time()
-
-    idx = position
-    # iterate through markings-dict (by accessing it via keys)
-    while idx < len(first_pass_markings):
-    # for idx in range(position, len(first_pass_markings)-1):
-        try:
-        # for idx,marking in first_pass_markings.items():
-            marking = first_pass_markings[str(idx)]
-
-            # initializations if there's any replacements to be made
-            if marking["contains-LW"] or marking["contains-RN"]:
-                # print a nice title (only if there's any lovely annotation to be done)
-                console.print(Rule(title=f"Sentence {idx}",characters="#", style="spring_green3"))
-                
-                # get the sentence from marking
-                sentence = marking["sentence"]
-
-                # initialize current output-dict
-                native_to_loan = {}
-                loan_to_native = {}
-                outdict_current_sent = {
-                    "changes-native-to-loan" : native_to_loan,
-                    "changes-loan-to-native" : loan_to_native,
-                    "original_sentence" : detokenizer.detokenize_string(sentence)}
-
-            # skip if no annotation wanted
-            else: 
-                console.log(f"Skipping Sentence {idx}") #keep
-                idx += 1
-                continue
-
-            # "pure" native sentence:
-            if marking["contains-LW"]:
-                lw_candidates = marking["candidates"]
-                # console.print(yellowbold("Sentence"),f'({(str(idx))}):')
-                console.print("  Replacing loanwords with native alternatives")
-                console.print(Rule(style="green"))
-                native_only_sent, changes = cli_replace_lw(lw_candidates, sentence, language)
-
-                # update current output with the results
-                outdict_current_sent["only_native_sentence"] = native_only_sent
-                loan_to_native.update(changes)
-
-                # only save if the new sentence differs from the original one
-                if outdict_current_sent["original_sentence"] != outdict_current_sent["only_native_sentence"]:
-                    results[str(idx)] = outdict_current_sent
-            # if no replacement: save the original sentence as the "pure native sentence"
-            else:
-                outdict_current_sent["only_native_sentence"] = outdict_current_sent["original_sentence"]
-
-            # "pure" loan sentence:
-            if marking["contains-RN"]:
-                # cosmetics / info
-                console.print("  Replacing loanwords with native alternatives")
-                console.print(Rule(style="green"))
-
-                loans_only_sent, changes = cli_replace_na(sentence, language)
-                
-                # update current output with the results
-                outdict_current_sent["only_loans_sentence"] = loans_only_sent
-                native_to_loan.update(changes)
-
-                # only save if the new sentence differs from the original one
-                if outdict_current_sent["original_sentence"] != outdict_current_sent["only_loans_sentence"]:
-                    results[str(idx)] = outdict_current_sent
-            # if no replacement: save the original sentence as the "pure loan sentence"
-            else:
-                outdict_current_sent["only_loans_sentence"] = outdict_current_sent["original_sentence"]
-
-            # console.log(outdict_current_sent)
-            # save results
-            results[str(idx)] = outdict_current_sent
-            idx += 1
-            continue
-
-        except ResetSentence:
-            console.log("Raised ResetSentence") #keep
-            continue
-        except DiscardSentence:
-            console.log("Raised DiscardSentence") #keep
-
-            idx += 1
-            continue
-        except ExitAnnotation:
-            console.print("Exiting Annotation", end="\n", style="red bold")
-            with console.status("",spinner="simpleDots"):
-                time.sleep(.5)
-            break
-
-    # EXITING:
-    if remember_position:
-        console.log("saving position") #keep
-        # console.log(position)
-        save_position_and_pass(language=language, position=idx, n_pass=2, time=time.time()-starttime)
-    with open(output_file, 'w', encoding="utf-8") as f:
-        console.log("Saving results in:\n",yellow_light(output_file)) #keep
-        # console.log(results)
-        json.dump(results, f, indent=4, separators=(',', ': '))
-    # save annotation memory
-    if use_annotation_memory:
-        save_annmem(annotation_memory, path=annmem_path)
-
-    return results
-
 
 
 def annotate_wrapper(language: str,
@@ -1084,29 +761,14 @@ def annotate_wrapper(language: str,
                 config = load_config()
                 config["wordlists"][language] = filename
                 save_config(config)
-                lwlist = load_lwlist(lwlist_path=f'{DATA_PATH}loanwords/{filename}')
+                lwlist = load_lwlist(language=language)
         # console.log(lwlist)
-        # Get from persistence-store: do first or second pass
-        
-        # would also catch a value outside of (1, 2) --> defaults to doing a Firstpass
-        first_pass_markings = {}
-        n_pass = which_pass(language)
-        console.log(f'n-pass: {n_pass}') #keep
-        if n_pass == 1:
-            first_pass_markings = first_pass(language,corpus_name, corpus_path,file_path,lw_list=lwlist)
-        elif n_pass == 2:
-            second_pass_extracting(language=language,
-                            corpus_name=corpus_name,
-                            corpus_path=corpus_path,
-                            first_pass_markings=first_pass_markings,
-                            file_path=file_path,
-                            lw_list=lwlist)
-        elif n_pass == -1:
-            single_pass(language=language,
-                            corpus_name=corpus_name,
-                            corpus_path=corpus_path,
-                            file_path=file_path,
-                            lw_list=lwlist)
+
+        single_pass(language=language,
+                        corpus_name=corpus_name,
+                        corpus_path=corpus_path,
+                        file_path=file_path,
+                        lw_list=lwlist)
     # graceful exiting
     except ExitAnnotation:
         console.print("Exiting Annotation", end="\n", style="red bold")

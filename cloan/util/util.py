@@ -7,7 +7,6 @@ from utoken import detokenize
 
 import pyarabic.araby as araby # this will remove diacritics which are optional in writing in Abjad scripts
 
-# TODO
 from rich.console import Console
 from rich.rule import Rule
 import questionary
@@ -113,57 +112,12 @@ def load_prev_output(path):
         results = {}
 
     return results
-
-
-####### SINGLE/DUAL PASS ###############
-def single_or_dual_pass():
-    msg = "Would you like to "
-    console.print(Rule())
-    console.print("You can choose between two options:\n\n- ",
-                  yellowbold('SINGLE PASS:'), 
-                  "Go through the corpus once, decide for each sentence whether it contains any replaceable words. Modify the sentence right then and there.\n\n- ",
-                  yellowbold('DUAL PASS:'),
-                  "Go through the corpus twice: In the first pass, you'll flag whether a sentence contains any replaceable words..\nIn a second pass, you'll modify the sentences you flagged before.\n")
-    
-    try:
-        user_choice = questionary.select(
-            message=msg,
-            choices=["SINGLE PASS (recommended)", "DUAL PASS"],
-            style=default_select_style,
-            use_shortcuts=True,
-            default=None,
-            qmark="",
-        ).unsafe_ask()
-
-        n_pass = -1 if (user_choice == "SINGLE PASS (recommended)") else 1
-        return n_pass
-    except KeyboardInterrupt:
-        interrupt_menu_main()
 ###############################################
 
 
 ###############################################
 ################# PERSISTENCE #################
-def which_pass(language) -> int:
-    try:
-        with open(PERSIST, "r", encoding="utf-8") as f:
-            persistence = json.load(f)
-        n_pass = persistence[language]["pass"]
-        return n_pass
-    except KeyError:
-        return single_or_dual_pass()
-    except json.decoder.JSONDecodeError:
-        return single_or_dual_pass()
-
-
-def start_annotating_from_sent_x(num_sents):
-    # first or second pass
-    mark_or_annotate = questionary.select(
-        "Would you like to mark sentences (first pass) or annotate sentences (second pass)",
-        choices=["MARK (first pass)", "ANNOTATE (second pass)"],
-        style=default_select_style,
-        )
-    n_pass = 1 if mark_or_annotate == "MARK (first pass)" else 2
+def start_annotating_from_sent_x(num_sents) -> int:
 
     # which line
     userinput = input(f'From which sentence onward would you like to start working?\n(Valid range: 0 - {num_sents-1})')
@@ -175,30 +129,29 @@ def start_annotating_from_sent_x(num_sents):
     except ValueError:
         print(f'{userinput} cannot be converted to an Integer.\nPlease only enter digits')
         number = start_annotating_from_sent_x(num_sents)
-    return number, n_pass
+    return number
 
 
-def load_position(language, num_sentences) -> int:
+def persistence_load(language, corpus_name, num_sentences) -> int:
     try:
         # open the memory file, load the saved position for the current language
         with open(PERSIST, "r", encoding="utf-8") as f:
             persistence = json.load(f)
             # console.log("opened persistence file")
         
-        position = persistence[language]["position"]
-        n_pass = persistence[language]["pass"]
+        position = persistence[corpus_name][language]["position"]
         # console.log(position)
         # if a file has already been passed through completely:
-        if position >= num_sentences and n_pass == 2:
+        if position >= num_sentences:
             # Ask the user whether they want to reannotate the whole process again
             choice = questionary.select(
-                "You've already fully annotated this corpus (first and second pass)\nDo you really want to go through it again?",
+                "You've already fully annotated this corpus\nDo you really want to go through it again?",
                 choices=("yes","no", "yes, but only from a certain line onwards")).ask()
             if choice == "no":
                 print("Exiting...")
                 time.sleep(1.0)
             elif choice == "yes, but only from a certain line onwards":                    
-                position,n_pass = start_annotating_from_sent_x(num_sentences)        
+                position = start_annotating_from_sent_x(num_sentences)        
             else:
                 position=0
         return position
@@ -206,32 +159,37 @@ def load_position(language, num_sentences) -> int:
         print("Memory-file could not be found.\nInitialising memory, and starting annotation from the start of the selected file.")
         persistence = {}
         position = 0
-        persistence[language] = {"position": position, "pass": 1} 
+        persistence[corpus_name] = {language : {"position": position, "time": 0.} }
     except json.decoder.JSONDecodeError:
         print("Memory-file was found, but didn't contain a valid store.\nInitialising memory, and starting annotation from the start of the selected file.")
         persistence = {}
         position = 0
-        persistence[language] = {"position": position, "pass": 1} 
+        persistence[corpus_name] = {language : {"position": position, "time": 0.} }
     # File exists, but "language" has no entry yet 
     except KeyError:
         position = 0
-        persistence[language] = {"position": position, "pass": 1} 
+        try:
+            persistence[corpus_name][language] = {"position": position, "time": 0.}
+        except KeyError:
+            persistence[corpus_name] = {language : {"position": position, "time": 0.} }
     return position
 
 
-def save_position_and_pass(language, position, n_pass: int=1, time: float=0.):
+def persistence_save(language, corpus_name, position, time: float=0.):
     # save file position
     try:
         with open(PERSIST, "r", encoding="utf-8") as f:
             memory = json.load(f)
     except json.decoder.JSONDecodeError:
-        memory = {}
+        memory = {corpus_name : { language : {"position": position, "time": time}}}
     try:
-        memory[language]["position"] = position
-        memory[language]["pass"] = n_pass
-        memory[language]["time"] += time
+        memory[corpus_name][language]["position"] = position
+        memory[corpus_name][language]["time"] += time
     except KeyError:
-        memory[language] = {"position": position, "pass": n_pass, "time":time}
+        try:
+            memory[corpus_name][language] = {"position": position, "time": time}
+        except KeyError:
+            memory[corpus_name] = { language : {"position": position, "time": time}}
     # console.log(memory)
     with open(PERSIST, 'w', encoding="utf-8") as f:
         json.dump(memory, f)
@@ -475,24 +433,27 @@ def interrupt_startup():
 
 
 def interrupt_manual_replacement():
-    console.clear()
-    console.print("\n", Rule(style="red", characters="#"))
-    options = ["TRY AGAIN: Reset the sentence to how it was just before, do another replacement operation.","MOVE ON: continue with the next sentence, but save all previous annotations for the current sentence.","DISCARD: continue with the next sentence, but don't save any annotations for the current sentence."]
-    choice = questionary.select(
-        "What do you want to do?",
-        instruction="",
-        style=interrupt_style,
-        choices=options,
-        use_shortcuts=True,
-        default=None,
-        pointer=f'>>',
-    ).ask()
-    if choice == options[0]:
-        raise ResetSentence
-    if choice == options[1]:
-        raise SaveAndMoveOn
-    if choice == options[2]:
-        raise DiscardSentence
+    try:
+        console.clear()
+        console.print("\n", Rule(style="red", characters="#"))
+        options = ["TRY AGAIN: Reset the sentence to how it was just before, do another replacement operation.","MOVE ON: continue with the next sentence, but save all previous annotations for the current sentence.","DISCARD: continue with the next sentence, but don't save any annotations for the current sentence."]
+        choice = questionary.select(
+            "What do you want to do?",
+            instruction="",
+            style=interrupt_style,
+            choices=options,
+            use_shortcuts=True,
+            default=None,
+            pointer=f'>>',
+        ).unsafe_ask()
+        if choice == options[0]:
+            raise ResetSentence
+        if choice == options[1]:
+            raise SaveAndMoveOn
+        if choice == options[2]:
+            raise DiscardSentence
+    except KeyboardInterrupt:
+        raise ExitAnnotation
 ####################################################
 
 if __name__ == "__main__":
