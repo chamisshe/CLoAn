@@ -80,7 +80,7 @@ def save_annmem(annmem, path):
 
 ##### MANUAL EDITING ##########################
 def detect_changes(old_sent: str, new_sent: str):
-    
+    start = 0
     if old_sent == new_sent:
         pass
 
@@ -90,13 +90,14 @@ def detect_changes(old_sent: str, new_sent: str):
             break
     for i, (a,b) in enumerate(zip(old_sent[::-1], new_sent[::-1]), ):
         if a != b:
-            # print(a, b)
             stop = -i
-            print(stop)
             break
+    # print(start,stop)
     if len(old_sent) > len(new_sent):
+        stop = - len(new_sent)
         return old_sent[start:stop], stop
     else:
+        stop = - len(old_sent)
         return new_sent[start:stop], stop
 ###############################################
 

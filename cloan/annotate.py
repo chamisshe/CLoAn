@@ -87,7 +87,7 @@ annotation_memory = {"native-loan": {},
 
 
 
-def manual_replacement(sentence: str, direction="replace-loans") -> tuple[str, dict[str:str]]:
+def manual_replacement(sentence: str, direction="replace-loans", display_menu: bool=True) -> tuple[str, dict[str:str]]:
     
     # Save original sentence:
     global annotation_memory
@@ -99,23 +99,24 @@ def manual_replacement(sentence: str, direction="replace-loans") -> tuple[str, d
         msg = "\nDo you want to manually replace any other loanwords in the current sentence?"
         title = "Replacing loanwords with native words"
         # ASK user whether to do any manual replacement-operations at all
-        try:
-            choice = questionary.select(
-                message=msg,
-                choices=("YES, please.", "NO, take me to the next step"),
-                style=default_select_style,
-                use_shortcuts=True,
-                default=None,
-                qmark="",
-            ).unsafe_ask()
-        except KeyboardInterrupt:
-            interrupt_menu_main()
-        if choice.startswith("YES"):
-            pass
-        # If user does not want to do any manual replacement stuff: return the current sentence and an empty dict
-        else:
-            console.print(Rule())
-            return sentence, replacements
+        if display_menu:
+            try:
+                choice = questionary.select(
+                    message=msg,
+                    choices=("YES, please.", "NO, take me to the next step"),
+                    style=default_select_style,
+                    use_shortcuts=True,
+                    default=None,
+                    qmark="",
+                ).unsafe_ask()
+            except KeyboardInterrupt:
+                interrupt_menu_main()
+            if choice.startswith("YES"):
+                pass
+            # If user does not want to do any manual replacement stuff: return the current sentence and an empty dict
+            else:
+                console.print(Rule())
+                return sentence, replacements
         
     elif direction == "replace-native":
         # msg = "\nDo you want to manually replace any other native words in the current sentence?"
@@ -384,7 +385,6 @@ def select_and_edit_mono(focus_word: str, pre: list[str], post: list[str], direc
 def cli_replace_na(sentence: str, language: str) -> tuple[str,dict[str:str]]:
     """Replace NATIVE WORDS in a sentence with LOANWORDS"""
     # console.log("This would be the cli_replace_na")
-
     changes = {}
     try:
         # tokenize
@@ -397,8 +397,6 @@ def cli_replace_na(sentence: str, language: str) -> tuple[str,dict[str:str]]:
         #           (necessary because the front of the list may be modified)
         for i in range(-sentlen, 0):
             word = sentlist[i]
-
-
             
             if word in annotation_memory["native-loan"].keys() \
                 or araby.strip_diacritics(word) in annotation_memory["native-loan"].keys():
@@ -466,27 +464,28 @@ def cli_replace_lw(lw_list: list[str], sentence: str, language: str) -> tuple[st
 
         # iterate through tokens via negative indexing 
         #           (necessary because the front of the list may be modified)
-        for i in range(-sentlen, 0):
-            word = sentlist[i]
+        if lw_candidates:
+            for i in range(-sentlen, 0):
+                word = sentlist[i]
 
-            # IF arabic script...
-            if language in ARABIC_SCRIPT:
-                # ...also match the stripped word
-                stripped_word_in_sent = araby.strip_diacritics(word) in lw_candidates
-            else:
-                # ...set condition to false otherwise
-                stripped_word_in_sent = False
+                # IF arabic script...
+                if language in ARABIC_SCRIPT:
+                    # ...also match the stripped word
+                    stripped_word_in_sent = araby.strip_diacritics(word) in lw_candidates
+                else:
+                    # ...set condition to false otherwise
+                    stripped_word_in_sent = False
 
-            # regular condition         special case for abjads
-            if word in lw_candidates or stripped_word_in_sent:
-                rest = sentlist[i+1:]
-                full_sent, loanword, alternative = select_and_edit_mono(focus_word=word, pre=sentlist[:i], post=rest[i+1:])
-                if loanword is not None:
-                    changes[loanword] = alternative
-                sentlist = full_sent.split()
-                
+                # regular condition         special case for abjads
+                if word in lw_candidates or stripped_word_in_sent:
+                    rest = sentlist[i+1:]
+                    full_sent, loanword, alternative = select_and_edit_mono(focus_word=word, pre=sentlist[:i], post=rest[i+1:])
+                    if loanword is not None:
+                        changes[loanword] = alternative
+                    sentlist = full_sent.split()
+        
         sentence = " ".join(sentlist)
-        sentence, replacements = manual_replacement(sentence)
+        sentence, replacements = manual_replacement(sentence, display_menu=bool(lw_candidates))
         sentence = detokenizer.detokenize_string(sentence)
         changes.update(replacements)
 
@@ -629,6 +628,7 @@ def single_pass(language: str,
                 "changes-native-to-loan" : native_to_loan,
                 "changes-loan-to-native" : loan_to_native,
                 "original_sentence" : detokenizer.detokenize_string(sentence)}
+
 
             # replace loanwords w/ native
             if choices[0] in user_choices:

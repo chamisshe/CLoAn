@@ -40,10 +40,12 @@ def get_pages_wiktionary_de(url: str, file: TextIOWrapper):
         if looking_for_start:
             if child.name == u"h2":
                 looking_for_start = False
+            continue
                 # if child.findall
         if child.name == u"p":
+            # print(child)
             # _ = [file.writelines(ls) for ls in [dehyphenate(el.text) for el in child.find_all_next("a", class_="new")]]
-            _ = [[file.write(f'{word}\n') for word in words if len(word) >= 3] for words in [dehyphenate(el.text) for el in child.find_all_next("a", class_="new")]]
+            _ = [[file.write(f'{word}\n') for word in words if len(word) >= 3] for words in [dehyphenate(el.text) for el in child if el.name == u"a"]]
             # EQUIVALENT TO:
             # for word in child.find_all_next("a", class_="new"):
             #     words = dehyphenate(word.text)
@@ -51,7 +53,8 @@ def get_pages_wiktionary_de(url: str, file: TextIOWrapper):
             #         file.write(f'{word}\n')
 
 def scrape_wiktionary_german():
-    urls = ["https://de.wiktionary.org/wiki/Verzeichnis:Deutsch/Anglizismen",
+    urls = [
+            "https://de.wiktionary.org/wiki/Verzeichnis:Deutsch/Anglizismen",
             "https://de.wiktionary.org/wiki/Verzeichnis:Deutsch/Arabismen",
             "https://de.wiktionary.org/wiki/Verzeichnis:Deutsch/Gallizismen",
             "https://de.wiktionary.org/wiki/Verzeichnis:Deutsch/Hispanismen",
@@ -61,13 +64,18 @@ def scrape_wiktionary_german():
             "https://de.wiktionary.org/wiki/Verzeichnis:Deutsch/Slawismen"
             ]
             
-    FILENAME="data\loanwords\_german_loanwords.tsv"
+    FILENAME="data\\loanwords\\german_loanwords.tsv"
     # wipe
     with open(FILENAME, 'w'): pass
     # write
     with open(FILENAME, "a", encoding="utf-8") as lwlist:
         for url in urls:
-            output = get_pages_wiktionary_fr(url, lwlist)
+            output = get_pages_wiktionary_de(url, lwlist)
+    # remove duplicates
+    with open(FILENAME, "r", encoding="utf-8") as f:
+        loanwords = f.readlines()
+    with open(FILENAME, "w", encoding="utf-8") as f:
+        f.writelines(sorted(list(set(loanwords))))
 
 def get_pages_wiktionary_fr(url: str, file: TextIOWrapper):
     page= requests.get(url)
@@ -129,5 +137,6 @@ if __name__ == "__main__":
     # print(outlist)
     # print(dehyphenate("Gönnungs-Meister"))
 
-    scrape_wiktionary_french()
+    scrape_wiktionary_german()
+    # scrape_wiktionary_french()
     pass
