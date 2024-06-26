@@ -1,7 +1,7 @@
 # Annotation Guide
 Hi! Thanks for doing annotation works for this project.
 
-Manual annotation is often tedious, but I'm trying to make it **as smooth as possible** for You, the Annotator. This is why I wrote a custom Command-Line Interface (CLI) for this particular type of annotation. This means it works entirely within your console (CMD/PowerShell on Windows, Terminal on MacOS).
+Manual annotation is often tedious, but I'm trying to make it **as easy as possible** for You, the Annotator &mdash; hence this custom Command-Line Interface (CLI) for this very particular type of annotation. It  works entirely within your console (CMD/PowerShell on Windows, Terminal on MacOS).
 
 The goal of the project is a contrastive dataset of loanwords/native words, thus the tool is named _**CLoAn**_, short for _**C**ontrastive **Lo**anword **An**notator_. 
 
@@ -76,7 +76,7 @@ The first time you try to annotate any corpus, _CLoAn_ will need to know where t
 
 <details>
 
-<summary>**Example**</summary>
+**<summary>Example</summary>**
 
 Let's say the FLORES+ dataset is stored in the following directory:<br>`C:/Users/Gimli/Documents/floresp-v2.0-rc.2`
 
@@ -96,10 +96,10 @@ The good thing is: Once you've told CLoAn the (correct) path to the corpus, it r
 
 <details>
 
-<summary>**Under the hood...**</summary>
+**<summary>Under the hood...</summary>**
 
 ...meta-information such as paths, filenames, language names are stored under `data/.config/config.yml`. When starting _CLoAn_, it tries to take as much info as it can from this config-file. When information is missing, it (ideally) asks the user to provide the necessary info. Less ideally, if it's an error I didn't encounter yet and thus didn't put any precautions in place, starting up fails.<br>
-It is recommended that you **don't mess with the config file** unless you really know what you're doing.
+It is generally recommended that you **do not mess with the config file** &mdash; unless you like trouble or youreally know what you're doing.
 
 </details>
 
@@ -111,7 +111,8 @@ Different corpora might use different naming schemes. Thus, _CLoAn_ needs to rem
 If you're choosing a different language (`> Other`), _CLoAn_ will ask for the filename, which we'll call `<filename>`. 
 
 <details> 
-<summary>**Example**</summary>
+
+**<summary>Example</summary>**
 
 Let's say you want to annotate the FLORES+devtest corpus in _Sindarin_:
 
@@ -138,7 +139,7 @@ To do so, you need to use the appropriate flags:
 
 <details>
 
-<summary>**Example**</summary>
+**<summary>Example</summary>**
 
 ```bash
 python annotate.py -c FLORES+devtest -l Sindarin
@@ -160,41 +161,41 @@ The aim of this annotation is to obtain a **Borrowing-Contrastive Dataset**.<br>
 
 | A: including loanwords                 | B: excluding loanwords                       |
 |----------------------------------------|----------------------------------------------|
-| He bought himself a new rucksack.      | He bought himself a new backpack.            |
-| I lost sight of doppelgänger en route. | I lost sight of my look-alike along the way. |
+| He bought himself a new **rucksack**.      | He bought himself a new **backpack**.            |
+| I lost sight of my **doppelgänger** en route. | I lost sight of my **look-alike** along the way. |
 | ...et cetera                           | ...and so on                                 |
 
 
-The annotation process is split into two parts:
-1. **Marking (first pass)<br>**
-2. **Modification (second pass):<br>**
+### Annotation Process
 
-#### 1. Marking
+#### Marking
+You'll go through each sentence of your target language in the corpus (most likely _FLORES+devtest_). Along with each sentence, you're presented with a multiselect-menu with two options:
+- Does the sentence contain any **striking and replaceable** loanwords?
+- Does the sentence contain any **replaceable** native words?
 
-You'll go through each sentence of your target language in the corpus. For now, we're just interested in collecting 3 pieces of information _about_ each sentence:
-- Does it contain any **obvious and replaceable** loanwords?
-- Does it contain any **Named Entities**?
-- Does it contain any instances of **foreign-script items**?
-You'll be presented with a multi-select menu. You can navigate it with the arrow-keys or \<j\> & \<k\> (\<j\>=down, \<k\>=up). To select/unselect an item, use the space-bar. Once you're done, press ENTER.
+> [!HINT]
+ > You can navigate it with the arrow-keys or \<j\> & \<k\> (\<j\>=down, \<k\>=up). To select/unselect an item, use the space-bar. Once you're done, press ENTER.
 
-**Note:** There might be some strange and unexpected characters (`@`) in your sentence. You need not worry about this. To flag loanwords more effectively, sentences are tokenized first. These additional symbols are used to put the sentence back together when it is stored in the final output. Just ignore these special characters.
+Select all options that are true for the current sentence. CLoAn will then automatically take you through the substeps that correspond to your selection.
 
-**WARNING:** You can only move forward through the corpus. Once you've made your choice, you can't go back to change your answers.
 
-<br>Here are some more details about what is meant for each choice:
+> **Note**
+ > There might be some strange and unexpected characters (`@`) in your sentence. You need not worry about this. To flag loanwords more effectively, sentences are tokenized first. These additional symbols are used to put the sentence back together when it is stored in the final output. Just ignore these special characters.
+<!-- **WARNING:** You can only move forward through the corpus. Once you've made your choice, you can't go back to change your answers. -->
 
-###### Loanwords
+<br>Here are some more details about what exactly is meant by loanwords:
 
+##### Loanwords
 <details> 
 
-<summary> **Definition** </summary>
+**<summary>Definition </summary>**
 
-From [Wikipedia](https://en.wikipedia.org/wiki/Loanword): <br>
+> From [Wikipedia](https://en.wikipedia.org/wiki/Loanword): <br>
 _"A loanword is a word at least partly assimilated from one language (the donor language) into another language (the recipient or target language), through the process of borrowing."_
 
 </details>
 
-We'll describe words that are **not** borrowed as _'native'_. Loanwords are hereafter also referred to as _borrowings_ or _loans_.
+We'll call words that are **not** borrowed _'native'_. Loanwords are hereafter also referred to as _borrowings_ or _loans_.
 
 Some loanwords are easy to spot, others not quite. For example, many speakers of English could probably identify _cul-de-sac_  as a borrowing from French, but barely anyone would take note of _slogan_ ([from Scottish Gaelic _sluagh-ghairm](https://www.merriam-webster.com/dictionary/slogan#word-history)). As in this example, there is a big difference in how much the word has been changed to fit into the English language.
 
@@ -202,47 +203,25 @@ Initially, borrowings often refer to concepts that are novel in the target langu
 
 If you, a speaker fluent in that language, can easily spot a word as a borrowing _**and**_ think of a suitable native alternative, then congrats, you've found a **obvious and replaceable** loanword! Any sentence containing one or more of these kinds of loans can be marked accordingly.
 
-Some examples: (loanwords in **bold**)
-- :x: _The teacher was giving a lesson about **trigonometry**_ (from Greek; no suitable alternative)
-- :x: _Nike's **slogan** is very famous._ (most likely not an obvious loanword)
-- :white_check_mark: _We then visited the **plaza** in the city centre._ (from Spanish; _square_ is a suitable alternative)
+> Some examples: (loanwords in **bold**) <br>
+>- :x: _The teacher was giving a lesson about **trigonometry**_ (from Greek; no suitable alternative)
+>- :x: _Nike's **slogan** is very famous._ (most likely not an obvious loanword)
+>- :white_check_mark: _We then visited the **plaza** in the city centre._ (from Spanish; _square_ is a suitable alternative)
+
+Similarily, when you encounter a native word that you know has an **appropriate borrowed alternative**, 
+
 
 These judgements will depend mainly on your intuition as a fluent speaker - both questions of how obviously borrowed a word _feels_ and of whether it has any adequate replacements in the current sentence. You are thus strongly encouraged to use your 'linguistic gut-feeling'.
 
-As a bit of aid, potential loanwords are highlighted in each sentence. Note that this highlighting is very rudimentary, as it just checks each word against a list of known loanwords (where such lists are available). It will mark some words as borrowed that aren't loanwords and certainly miss some that are.<br>**Do not fully rely on the highlighting!**
+As an aid, potential loanwords are highlighted in each sentence. Note that this highlighting is very rudimentary, as it just checks each word against a list of known loanwords (where such lists are available). It will mark some words as borrowed that aren't loanwords and certainly miss some that are.<br>**Do not fully rely on the highlighting!**
 
-###### Named Entites
+#### 2. Modifying a sentence
 
-Named entities can be:
-- people (e.g. _Dr. Ehud Ur_, _Thorin Oakenshield_)
-- places (_Nova Scotia_, _Halifax_, _Rivendell_)
-- organisations/companies (_Dalhousie University_, _Canadian Diabetes Association_, _ADT corporation_)
-- others: products/services (_Gmail_, _Linux_), events (_October Revolution_), medical terms (_Malaria_), etc.
-
-Named entities can often be foreign or borrowed words, but because of their referential function often cannot be  replaced by more native alternatives. However, some named entities may be partly or completely translated into a target language (English to German in the following examples):
-- _United States_ → _Vereinigte Staaten_
-- _Dengue fever_ → _Dengue Fieber_
-- _Harvard University_ → _Universität Harvard_
-
-**If the current sentence contains any named entities, mark it as such.**
-
-###### Foreign Script
-
-Relatively self-explanatory: Any instances of writings in foreign script. This will likely be more relevant for any annotation in non-Latin script.
-
-The following is an example of a sentence from the Central-Kurdish file of FLORES+devtest:<br>
-_لە کۆتایی ٢٠١٧ دا، سیمینۆف لە کەنالی تەلەڤیزۆنیی بازاڕکردندا بەناوی (QVC) دەرکەوت._
-
-You can see the abbreviation in Latin script, whereas the rest of the sentence is written in Arabic script.<br>**If such an instance of "script-switching" occurs in the current sentence, mark it accordingly.**
-
-
-#### 2. Modification
-
-After having gone through the whole corpus, _CLoAn_ will load all the sentences you marked as containing _obvious and replaceable loanwords_.
+After you've marked a sentence, CLoAn continues to the corresponding next steps.
 
 Your task now is to modify the sentences such that (where possible) all loanwords are replaced by native alternatives. _CLoAn_ does this in multiple substeps
 
-##### Replace detected loanwords
+##### Replace loanwords
 
 In those languages where lists of known loanwords are available, the potential loanwords (= _candidates_) of each sentence will be flagged. 
 
@@ -278,7 +257,7 @@ To keep track of all the replacements we make, manual replacement works in three
 
 <details> 
 
-<summary>**Example**</summary>
+**<summary>Example</summary>**
 
 Goal: Replace _suave_ by _smooth_
 
@@ -290,10 +269,14 @@ From now on, whenever _suave_ shows up in a sentence, _CLoAn_ will suggest _smoo
 
 You can do multiple replacements in a given sentence.
 
+##### Replace native words
+
+Unless already replaced previously, native words won't be detected automatically. Therefore, replacing native words with loans follows the same principle as the [Manual Replacement](#manual-replacement).
+
 ### Results
 
 The results will be stored in the following JSON-file:
 
 ```CLoAn/data/output/OUT_<corpus>_<language>.json```
 
-For each modified sentence, it will store the original and the modified version of the sentence as strings. Additionally, the replacement operations made in each sentence are stored as a dictionary (`{loanword : alternative}`). The sentences themselves are indexed by their position in the corpus.
+For each modified sentence, it will store the original and the modified version of the sentence as strings. Additionally, the replacement operations made in each sentence are stored in dictionaries (`{loanword : alternative}` / `{alternative : loanword}`). The sentences themselves are indexed by their position in the corpus.
