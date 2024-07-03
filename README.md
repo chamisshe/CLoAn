@@ -12,11 +12,11 @@ To use _CLoAn_, clone this repository in a directory of your choice:
     git clone git@github.com:chamisshe/CLoAn.git
 ```
 
-Next, you'll want to create a python virtual environment to install the required python packages.
+Next, you'll want to run the included setup-scripts. This will create a virtual environment, install the required packages and create the necessary folder structure.
 
 <details>
     
-<summary>Mac/Linux</summary>
+**<summary>Mac/Linux</summary>**
 
 On a UNIX-based system, run the following commands:
     
@@ -29,7 +29,7 @@ On a UNIX-based system, run the following commands:
 
 <details>
 
-<summary>Windows</summary>
+**<summary>Windows</summary>**
 
 On Windows (CMD or PowerShell), run:
     
@@ -41,7 +41,7 @@ On Windows (CMD or PowerShell), run:
 </details>
 
 #### Installing the Flores+ dataset
-For a start, we will work with `devtest` split of the Flores+ dataset. We cannot host the dataset on a public repository, therefore you will have to download the dataset from it's [source repository](https://github.com/openlanguagedata/flores?tab=readme-ov-file#download-the-dataset) yourself.<br>
+You will most likely will work with the `devtest` split of the **FLORES+** dataset. We cannot host the dataset on a public repository, therefore you will have to download the dataset from it's [source repository](https://github.com/openlanguagedata/flores?tab=readme-ov-file#download-the-dataset) yourself.<br>
 **Important:** Keep track of the path where you stored it, as you'll need to tell _CLoAn_ when you use the tool for the first time.
 
 ## Bugs and other Issues

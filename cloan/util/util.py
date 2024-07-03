@@ -4,6 +4,8 @@ import yaml
 from utoken import utokenize
 from utoken import detokenize
 
+import sqlite3
+import wn
 
 import pyarabic.araby as araby # this will remove diacritics which are optional in writing in Abjad scripts
 
@@ -14,14 +16,17 @@ import json
 import time
 from util.styles import default_select_style, interrupt_style, SENT_STYLE, MARK_LW, yellowbold, yellow_light, orange_light
 from util.interrupts import *
-from util.language_mappings import NAME_TO_ISO3CODE, ARABIC_SCRIPT
+from util.language_mappings import NAME_TO_ISO3CODE, ARABIC_SCRIPT, WORDNET_NAMES
 console = Console()
 
 tok = utokenize.Tokenizer()  # Initialize tokenizer, load resources later
 detok = detokenize.Detokenizer()  # Initialize tokenizer, load resources later
 
 ROOT = os.path.abspath(os.path.join( os.path.dirname(__file__), "../.."))
+ROOT = os.path.join(os.getcwd(), "..")
+console.log(ROOT)
 DATA_PATH = os.path.abspath(os.path.join(ROOT, "data/"))
+console.log("Data path =",DATA_PATH)
 PERSIST = os.path.abspath(os.path.join(DATA_PATH, "internal/PERSISTENCE.json"))
 
 
@@ -35,6 +40,24 @@ def load_tok_detok(lang: str) -> tuple[utokenize.Tokenizer,detokenize.Detokenize
     return tok, detok
 ###############################################
 
+
+######## LOAD WORDNET ##############################
+def load_wordnet(lang: str):
+    if lang not in WORDNET_NAMES.keys():
+        return None
+    wn_name = WORDNET_NAMES[lang]
+    try:
+        wordnet = wn.Wordnet(wn_name)
+    except sqlite3.OperationalError:
+        wn.download(wn_name)
+        wordnet = wn.Wordnet(wn_name)
+    return wordnet
+
+def use_wordnet(lang: str):
+    answer = ""
+    if answer.startswith("YES"): return True
+    else: return False
+###############################################
 
 
 ##### ANNOTATION MEMORY #######################
@@ -204,6 +227,7 @@ def persistence_save(language, corpus_name, position, time: float=0.):
 def load_config():
     config_path = os.path.abspath(os.path.join(DATA_PATH, ".config/config.yml"))
     # console.log(config_path)
+    console.log(config_path)
     with open(config_path, 'r', encoding='utf-8') as f:
         config_dict = yaml.safe_load(f)
     return config_dict
@@ -340,7 +364,7 @@ def find_loanwords_in_sentence(sentence: str, lw_list: list[str] | set[str], ful
     return found_words
 
 
-def highlight_all_loanwords(sentence, lw_candidates, abjad: bool=False):
+def highlight_all_loanwords(sentence, lw_candidates: list|set, abjad: bool=False):
 
     # console.log(tok.lang_code)
     full_sentence = sentence.split()

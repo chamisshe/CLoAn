@@ -1,71 +1,124 @@
 # Annotation Guide
-Hi! Thanks for doing annotation works for this project.
+Hi! Thanks for using CLoAn.
 
-Manual annotation is often tedious, but I'm trying to make it **as easy as possible** for You, the Annotator &mdash; hence this custom Command-Line Interface (CLI) for this very particular type of annotation. It  works entirely within your console (CMD/PowerShell on Windows, Terminal on MacOS).
+Manual annotation is often tedious, but I'm trying to make it **as easy as possible** for You, the Annotator &mdash; hence this custom Command-Line Interface (CLI) for this very particular type of annotation. It  works entirely within your console (CMD/PowerShell on Windows, Terminal on MacOS, bash on Linux).
 
 The goal of the project is a contrastive dataset of loanwords/native words, thus the tool is named _**CLoAn**_, short for _**C**ontrastive **Lo**anword **An**notator_. 
 
 The following chapters serve to provide a both an overview of the functionality of CLoAn and an annotation guide.
 
-### Navigating _CLoAn_
+## Installing CLoAn
+
+To use _CLoAn_, clone this repository in a directory of your choice:
+
+```bash
+    git clone git@github.com:chamisshe/CLoAn.git
+```
+
+Next, you'll want to run the included setup-scripts. This will create a virtual environment, install the required packages and create the necessary folder structure.
+
+<details>
+    
+**<summary>Mac/Linux</summary>**
+
+On a UNIX-based system, run the following commands:
+    
+```bash
+    cd CLoAn
+    source setup.sh
+```
+
+</details>
+
+<details>
+
+**<summary>Windows</summary>**
+
+On Windows (CMD or PowerShell), run:
+    
+```powershell
+    cd CLoAn
+    setup.bat
+```
+
+</details>
+
+#### Installing the Flores+ dataset
+You will most likely will work with the `devtest` split of the **FLORES+** dataset. We cannot host the dataset on a public repository, therefore you will have to download the dataset from it's [source repository](https://github.com/openlanguagedata/flores?tab=readme-ov-file#download-the-dataset) yourself.<br>
+**Important:** Keep track of the path where you stored it, as you'll need to tell _CLoAn_ when you use the tool for the first time.
+
+
+## Using CLoAn
+
+<details>
+
+**<summary>Navigating CLoAn</summary>**
 
 You can navigate all of _CLoAn_ using simply your keyboard, in fact your mouse won't be of much use here.<br>
 
-##### Interrupting/Exiting
+#### Interrupting/Exiting
 
-To **interrupt** _CLoAn_, press `CTRL + C`. <br> This raises what's called a _KeyboardInterrupt_. This is one of Python's built-in ways of letting the user stop the execution of a script.<br><br> 
+To **interrupt** _CLoAn_ at any point, press `CTRL + C`. <br> This raises what's called a _KeyboardInterrupt_. This is one of Python's built-in ways of letting the user stop the execution of a script.<br><br> 
 In most cases, this should bring up a menu with various options of what to do next.
 
-##### Menus
+#### Menus
 
 To navigate up and down between multiple options in the menus, use either
 - the arrow keys (`up`/`down`)
 - _vim_-style navigation: (`j` - down; `k` - up)
 
-###### Select
+##### Select
 
 In menus where you have to choose a single option (including Interrupt-menus), each item should have a number in front of itself. Pressing said number on your keyboard will take you directly to this item. 
 
 The current item will be highlighted in magenta/purple.<br>
 To select the current item, press enter.
 
-###### Checkbox
+##### Checkbox
 
 In menus where you may want to select multiple options, you can **select/unselect** an item by pressing `SPACE`. By default, all items are unselected. Once you've selected the items you want, press `ENTER`.
 
+</details>
+
+
 ### Starting up
-Once you've installed the tool (instructions in the `README`), you'll want to run it. Since it relies on a number of Python-modules, make sure you're running it inside the proper virtual environment.
-###### Activating the venv 
+Once you've installed the tool (instructions in the `README`), you'll want to run it. Since it relies on a number of Python-modules, make sure you're running it inside the proper virtual environment (or _venv_).
+#### Activating the venv 
 <details>
     
-<summary>**Mac/Linux**</summary>
+**<summary>Mac/Linux</summary>**
 
-On a UNIX-based system such as Linux or MacOS, run the following script:
+On a UNIX-based system such as Linux or MacOS, the following command will activate the virtual environment:
     
 ```bash
-source activate.sh
+source .venv-cloan/bin/activate && cd cloan
 ```
 
 </details>
 
 <details>
 
-<summary>**Windows**</summary>
+**<summary>Windows</summary>**
 
-On Windows, run:
+On Powershell, run:
 
 ```powershell
-.\activate.bat
+.venv-cloan\Scripts\activate ; cd cloan
 ```
 
+or on CMD, run:
+
+```cmd
+.venv-cloan\Scripts\activate && cd cloan
+```
 </details>
-All these commands do is activate the Virtual Environment and move into the directory where the relevant scripts are stored (it's just two simple lines of code, but we're all about that convenience).
+
 
 ##### Regular Startup
 
 Run the script from your terminal of choice.
 
-`python activate.py` / `python3 activate.py`
+`python annotate.py` / `python3 annotate.py`
 
 You will then be presented with an interactive menu to guide you through the startup.<br>
 
@@ -163,12 +216,12 @@ The aim of this annotation is to obtain a **Borrowing-Contrastive Dataset**.<br>
 |----------------------------------------|----------------------------------------------|
 | He bought himself a new **rucksack**.      | He bought himself a new **backpack**.            |
 | I lost sight of my **doppelgänger** en route. | I lost sight of my **look-alike** along the way. |
-| ...et cetera                           | ...and so on                                 |
+| ...**et cetera**                           | ...**and so on** |
 
 
-### Annotation Process
+<!-- ### Annotation Process -->
 
-#### Marking
+### Marking
 You'll go through each sentence of your target language in the corpus (most likely _FLORES+devtest_). Along with each sentence, you're presented with a multiselect-menu with two options:
 - Does the sentence contain any **striking and replaceable** loanwords?
 - Does the sentence contain any **replaceable** native words?
@@ -185,15 +238,19 @@ Select all options that are true for the current sentence. CLoAn will then autom
 
 <br>Here are some more details about what exactly is meant by loanwords:
 
-##### Loanwords
-<details> 
 
-**<summary>Definition </summary>**
+<details>
 
-> From [Wikipedia](https://en.wikipedia.org/wiki/Loanword): <br>
+**<summary> Loanwords </summary>**
+
+<!-- #### What are Loanwords? -->
+<!-- <details>  -->
+
+<!-- **<summary>Definition </summary>** -->
+> **Definition**(from [Wikipedia](https://en.wikipedia.org/wiki/Loanword)): <br>
 _"A loanword is a word at least partly assimilated from one language (the donor language) into another language (the recipient or target language), through the process of borrowing."_
 
-</details>
+<!-- </details> -->
 
 We'll call words that are **not** borrowed _'native'_. Loanwords are hereafter also referred to as _borrowings_ or _loans_.
 
@@ -214,6 +271,9 @@ Similarily, when you encounter a native word that you know has an **appropriate 
 These judgements will depend mainly on your intuition as a fluent speaker - both questions of how obviously borrowed a word _feels_ and of whether it has any adequate replacements in the current sentence. You are thus strongly encouraged to use your 'linguistic gut-feeling'.
 
 As an aid, potential loanwords are highlighted in each sentence. Note that this highlighting is very rudimentary, as it just checks each word against a list of known loanwords (where such lists are available). It will mark some words as borrowed that aren't loanwords and certainly miss some that are.<br>**Do not fully rely on the highlighting!**
+
+</details>
+
 
 #### 2. Modifying a sentence
 

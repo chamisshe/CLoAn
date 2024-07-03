@@ -27,6 +27,12 @@ ARABIC_SCRIPT = {
 WORDNET_NAMES = {
     "german" : "odenet",
     "french" : "omw-fr",
+    "english": "oewn:2023",
+    "croatian":"omw-hr:1.4",
+    "greek" : "omw-el:1.4",
+    "italian" : "omw-iwn:1.4",
+    "portuguese" : "omw-pt:1.4",
+    "icelandic" : "omw-is:1.4",
     "test" : "odenet",
 }
 
@@ -39,6 +45,13 @@ NAME_TO_ISO3CODE = {
     "greek" : "ell",
     "russian" : "rus",
     "farsi" : "fas",
+    "croatian" : "hrv",
+    "ukrainian" : "ukr",
+    "mandarin" : "cmn",
+    "italian" : "ita",
+    "portuguese" : "por",
+    "icelandic" : "isl",
+
 }
 
 
@@ -92,6 +105,42 @@ DEFAULT_NAMES = {
     "rus" : "russian",
     "русский" : "russian",
     "russ1263" : "russian",
+    # CROATIAN
+    "hr" : "croatian",
+    "hrv" : "croatian",
+    "hrvatska" : "croatian",
+    "croatian" : "croatian",
+    # MANDARIN
+    "cmn" : "mandarin",
+    "zh" : "mandarin",
+    "zhong-guo" : "mandarin",
+    "zhong guo" : "mandarin",
+    "zhongguo" : "mandarin",
+    "chinese" : "mandarin",
+    "modern chinese" : "mandarin",
+    "mandarin chinese" : "mandarin",
+    # UKRAINIAN
+    "ukrainian" : "ukrainian",
+    "uk" : "ukrainian",
+    "ukr" : "ukrainian",
+    "українська" : "ukrainian",
+    # ITALIAN
+    "italian" : "italian",
+    "ita" : "italian",
+    "it" : "italian",
+    "italiano" : "italian",
+    # PORTUGUESE
+    "português" : "portuguese",
+    "portugues" : "portuguese",
+    "portuguese" : "portuguese",
+    "pt" : "portuguese",
+    "por" : "portuguese",
+    # ICELANDIC
+    "isl" : "icelandic",
+    "is" : "icelandic",
+    "islenska" : "icelandic",
+    "íslenska" : "icelandic",
+    "icelandic" : "icelandic",
     # TEST
     "test" : "test",
 }

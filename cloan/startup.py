@@ -8,23 +8,23 @@ import questionary
 from demo import demo
 ############# STYLES ##############
 from util.styles import default_select_style, interrupt_style, SENT_STYLE, MARK_LW, yellowbold, yellow_light, orange_light
-
+from util.util import load_config, save_config
 
 console = Console()
 new_corpus = False
-ROOT = os.path.abspath(os.path.join( os.path.dirname(__file__), ".."))
 
 
-######## CONFIG saving
-def load_config(config_file: str="data/.config/config.yml") -> dict:
-    with open(os.path.abspath(os.path.join(ROOT,config_file)), "r", encoding="utf-8") as config_stream:
-        config_dict = yaml.safe_load(config_stream)
-    return config_dict
+# ROOT = os.path.abspath(os.path.join( os.path.dirname(__file__), ".."))
+# ######## CONFIG saving
+# def load_config(config_file: str="data/.config/config.yml") -> dict:
+#     with open(os.path.abspath(os.path.join(ROOT,config_file)), "r", encoding="utf-8") as config_stream:
+#         config_dict = yaml.safe_load(config_stream)
+#     return config_dict
 
-def save_config(config_dict, config_file: str="data/.config/config.yml"):
-    with open(os.path.abspath(os.path.join(ROOT,config_file)), "w", encoding="utf-8") as config_stream:
-        yaml.dump(config_dict, config_stream)
-    pass
+# def save_config(config_dict, config_file: str="data/.config/config.yml"):
+#     with open(os.path.abspath(os.path.join(ROOT,config_file)), "w", encoding="utf-8") as config_stream:
+#         yaml.dump(config_dict, config_stream)
+#     pass
 
 
 ######### CORPUS checking/loading ###############
@@ -229,7 +229,7 @@ def launch(corpus, lang):
     show_demo()
     # check for and/or get the right corpus-name and -path
     corpus_name, corpus_path = check_corpus(corpus_name=corpus)
-
+    console.log("corpus path= ", corpus_path)
     # check for and/or get the right language-name and file-path
     lang, file_path = check_language(lang, corpus_name, corpus_path)
     save_config(config_dict=config)

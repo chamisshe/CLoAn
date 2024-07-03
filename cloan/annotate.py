@@ -2,6 +2,7 @@
 # Generic
 import re
 import os
+import sys
 import time
 import json
 
@@ -22,8 +23,15 @@ import click
 from typing import Optional
 import questionary
 import pyperclip
+import keyboard
 import pyautogui
-
+try:
+    import pyautogui
+    USE_PYAUTOGUI = True
+except KeyError:
+    # os.environ['DISPLAY'] = ':0'
+    # import pyautogui
+    USE_PYAUTOGUI = False
 
 from util.language_mappings import FLORES_NAMES, WORDNET_NAMES, ARABIC_SCRIPT #, GET_FILENAMES, AVAILABLE_LANGUAGES
 from util.util import locate_lwlist,\
@@ -42,7 +50,8 @@ from util.util import locate_lwlist,\
                         interrupt_startup, \
                         update_annmem, \
                         save_annmem, \
-                        load_prev_output
+                        load_prev_output, \
+                        load_wordnet
 
 
 # demo
@@ -58,6 +67,7 @@ remember_position = True
 wipe_previous = False
 find_alternatives_mode = ""
 starttime = 0.
+wordnet = None
 
 from utoken import utokenize, detokenize
 tokenizer = utokenize.Tokenizer()
@@ -65,16 +75,21 @@ detokenizer = detokenize.Detokenizer()
 
 ############# STYLES ##############
 from util.styles import default_select_style, interrupt_style, SENT_STYLE, MARK_LW, yellowbold, yellow_light, orange_light, magentabold
-print(wn.lexicons())
-wordnet = wn.Wordnet("odenet")
 
 ############# INTERRUPTS #################
 from util.interrupts import *
 
 
 ##### DATA PATHS: ADJUST IF NECESSARY #####
-SRC_FOLDER = f"{os.path.dirname(os.path.realpath(__file__))}"
+# SRC_FOLDER = f"{os.path.dirname(os.path.realpath(__file__))}"
+SRC_FOLDER = os.getcwd()
+ROOT = os.path.join(os.getcwd(), "..")
+SRC_FOLDER = os.path.join(os.getcwd(), "..")
+console.log("src folder= ",SRC_FOLDER)
+# console.log(SRC_FOLDER)
+# console.log(os.getcwd())
 DATA_PATH = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../data/"))
+DATA_PATH = os.path.abspath(os.path.join(ROOT,"data/"))
 PERSIST = os.path.abspath(os.path.join(DATA_PATH, "internal/PERSISTENCE.json"))
 
 annotation_vars = {}
@@ -217,13 +232,23 @@ def edit_manual(sentence: str, position=False)-> str:
     -------
     """
     pyperclip.copy(sentence)
+
+    ####### V keyboard
+    # keyboard.send("ctrl+v")
+    # if position:
+    #     position = len(sentence[position:].split())
+    #     for i in range(position):
+    #         keyboard.send("ctrl+left")
+    #     keyboard.send("left")
+
+    ####### V pyautogui
     pyautogui.hotkey("ctrl", "v")
     if position:
         position = len(sentence[position:].split())
         with pyautogui.hold('ctrl'):
             pyautogui.press(["left"]*(position))
         pyautogui.press(["left"])
-    # TODO fix 
+
     try:
         corrected_sentence = input()
         return corrected_sentence
@@ -506,7 +531,12 @@ def single_pass(language: str,
                 lw_list: list[str]):
     """Do the whole annotation in a single pass. No first pass to mark the interesting sentences."""
     ##### FILENAMES #####
-    sents_path = os.path.join(corpus_path,file_path)
+    console.log(corpus_path)
+    console.log(os.path.relpath(corpus_path))
+    console.log(file_path)
+    console.log(os.path.relpath(file_path))
+    sents_path = os.path.relpath(os.path.join(os.path.relpath(corpus_path),os.path.relpath(file_path)))
+    console.log(sents_path)
     annmem_path = os.path.abspath(f'{DATA_PATH}/internal/annotation_memory-{language}.json')
     output_file = os.path.abspath(f"{DATA_PATH}/output/OUT_{corpus_name}_{language}.json")
 
@@ -595,12 +625,16 @@ def single_pass(language: str,
             # get sentence from list via current index
             sentence = sentences[idx]
             # tokenize & strip of newlines
+            # console.log(sentence)
+            # console.print(sentence)
             sentence = tokenizer.utokenize_string(sentence.strip("\n"))
+            # console.log(sentence)
             if lw_list:
+                # console.log(lw_candidates)
                 lw_candidates = find_loanwords_in_sentence(sentence, lw_list, abjad_match=(language in ARABIC_SCRIPT))
-                highlight_all_loanwords(sentence, lw_candidates, abjad=(language in ARABIC_SCRIPT))
             else:
                 lw_candidates = []
+            highlight_all_loanwords(sentence, lw_candidates, abjad=(language in ARABIC_SCRIPT))
             # select which direction(s) to modify the sentence
             choices = {0 : "Replace LOANWORDS with native alternatives.", 1: "Replace NATIVE WORDS with loanwords"}
             try:
@@ -750,6 +784,7 @@ def annotate_wrapper(language: str,
             if choice == options[0]:
                 # save "null"-filename
                 config = load_config()
+                console.log()
                 filename = None
                 config["wordlists"][language] = filename
                 save_config(config)
@@ -805,6 +840,9 @@ def main(corpus, lang, mode="WordNet"):
     # load tokenizer, detokenizer globally. (need language code for that)
     global tokenizer, detokenizer
     tokenizer, detokenizer = load_tok_detok(lang)
+
+    global wordnet
+
     # Start annotating.
     annotate_wrapper(lang, corpus_name, corpus_path, file_path)
     # console.log(corpus)
