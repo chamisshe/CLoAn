@@ -1,8 +1,6 @@
 ##################  IMPORTS  ######################
 # Generic
-import re
 import os
-import sys
 import time
 import json
 
@@ -23,7 +21,6 @@ import click
 from typing import Optional
 import questionary
 import pyperclip
-import keyboard
 import pyautogui
 try:
     import pyautogui
