@@ -7,7 +7,7 @@ For more information about the task, see the [slides](https://sinaahmadi.github.
 ---
 
 <p align="center">
-    <img class="rounded mx-auto d-block" src="loanwords.jpg" style="width:30%" align="middle" alt="Kurdish Clippy!"/>
+    <img class="rounded mx-auto d-block" src="loanwords.jpg" style="width:30%" align="middle"/>
 </p>
 
 The goal of this project is to create a contrastive dataset where in a given sentence loanwords are replaced by native alternatives. To do so, we use the CLoAn toolkit. This guide provides essential information about the annotation task and the tool.

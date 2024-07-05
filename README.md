@@ -1,4 +1,8 @@
-# README
+# CLoAn -- Contrastive Loanword Annotator
+
+<p align="center">
+    <img class="rounded mx-auto d-block" src="anglish.png" style="width:30%" align="middle"/>
+</p>
 
 ## What is CLoAn?
 
@@ -14,9 +18,8 @@ To use _CLoAn_, clone this repository in a directory of your choice:
 
 Next, you'll want to run the included setup-scripts. This will create a virtual environment, install the required packages and create the necessary folder structure.
 
-<details>
     
-**<summary>Mac/Linux</summary>**
+**Mac/Linux**
 
 On a UNIX-based system, run the following commands:
     
@@ -25,11 +28,8 @@ On a UNIX-based system, run the following commands:
     source setup.sh
 ```
 
-</details>
 
-<details>
-
-**<summary>Windows</summary>**
+**Windows**
 
 On Windows (CMD or PowerShell), run:
     
@@ -37,8 +37,6 @@ On Windows (CMD or PowerShell), run:
     cd CLoAn
     setup.bat
 ```
-
-</details>
 
 #### Installing the Flores+ dataset
 You will most likely will work with the `devtest` split of the **FLORES+** dataset. We cannot host the dataset on a public repository, therefore you will have to download the dataset from it's [source repository](https://github.com/openlanguagedata/flores?tab=readme-ov-file#download-the-dataset) yourself.<br>
