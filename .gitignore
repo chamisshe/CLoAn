@@ -1,0 +1,4 @@
+.venv-cloan/
+cloan/__pycache__/
+cloan/util/__pycache__/
+.DS_Store
