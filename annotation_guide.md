@@ -1,6 +1,14 @@
 # Loanwords Annotation Task
 
-<img class="rounded mx-auto d-block" src="loanwords.jpg" style="width:30%" align="middle" alt="Kurdish Clippy!"/>
+---
+
+For more information about the task, see the [slides](https://sinaahmadi.github.io/docs/slides/Loanwords_annotation_slides.pdf) (or [handout](https://sinaahmadi.github.io/docs/slides/Loanwords_annotation_handout.pdf)) of the plenary meeting.
+
+---
+
+<p align="center">
+    <img class="rounded mx-auto d-block" src="loanwords.jpg" style="width:30%" align="middle" alt="Kurdish Clippy!"/>
+</p>
 
 The goal of this project is to create a contrastive dataset where in a given sentence loanwords are replaced by native alternatives. To do so, we use the CLoAn toolkit. This guide provides essential information about the annotation task and the tool.
 
@@ -171,7 +179,9 @@ In menus where you may want to select multiple options, you can **select/unselec
 
 ## Annotation
 
-<img src="annotation_task.png" style="width:30%" align="middle" />
+<p align="center">
+    <img src="annotation_task.png" style="width:30%" align="middle" />
+</p>
 
 Once you install the tool and familize with the functionalities, you can start the annotation task. The final data in each language consists of sentence-pairs. In each pair, sentence _A_ will contain loanwords, while sentence _B_ will be the same sentence, but (ideally) have all its **loanwords replaced by native alternatives**.
 
@@ -198,19 +208,6 @@ You'll be presented with a multi-select menu. You can navigate it with the arrow
 
 **WARNING:** You can only move forward through the corpus. Once you've made your choice, you can't go back to change your answers.
 <!-- check -->
-
-<br>Here are some more details about what is meant for each choice:
-
-###### Loanwords
-
-
-**Definition**
-
-From [Wikipedia](https://en.wikipedia.org/wiki/Loanword): <br>
-_"A loanword is a word at least partly assimilated from one language (the donor language) into another language (the recipient or target language), through the process of borrowing."_
-
-
-As a bit of aid, potential loanwords are highlighted in each sentence. Note that this highlighting is very rudimentary, as it just checks each word against a list of known loanwords (where such lists are available). It will mark some words as borrowed that aren't loanwords and certainly miss some that are. **Do not fully rely on the highlighting!**
 
 ###### Named Entites²
 
@@ -277,9 +274,8 @@ To keep track of all the replacements we make, manual replacement works in three
 2. Enter the alternative (preferrably in lemma-form) in the appropriate place.
 3. Edit the sentence to ensure it stays grammatical.
 
-<details> 
 
-<summary>**Example**</summary>
+**Example**
 
 Goal: Replace _suave_ by _smooth_
 
@@ -287,7 +283,6 @@ Original sentence: <br>`I was convinced by a very suave salesman.` <br><br> → 
 
 From now on, whenever _suave_ shows up in a sentence, _CLoAn_ will suggest _smooth_ as an alternative.
 
-</details>
 
 You can do multiple replacements in a given sentence.
 
