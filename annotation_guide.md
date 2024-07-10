@@ -59,7 +59,8 @@ Once you've installed the tool, you'll want to run it. Since it relies on a numb
 On a UNIX-based system such as Linux or MacOS, run the following script:
 
 ```bash
-source activate.sh
+source setup.sh
+python annotate.py 
 ```
 
 **Windows**
@@ -67,16 +68,17 @@ source activate.sh
 On Windows, run:
 
 ```powershell
-.\activate.bat
+setup.bat
+python annotate.py
 ```
 
 All these commands do is activate the Virtual Environment and move into the directory where the relevant scripts are stored (it's just two simple lines of code, but we're all about that convenience).
 
 ##### Regular Startup
 
-Run the script from your terminal of choice.
+Run the script from your terminal of choice (in the `cloan` subdirectory).
 
-`python activate.py` / `python3 activate.py`
+`python annotate.py` / `python3 annotate.py`
 
 You will then be presented with an interactive menu to guide you through the startup.<br>
 
